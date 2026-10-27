@@ -7,7 +7,7 @@ from investaround.prices.fake import FakePriceSource
 
 RECORDED = ["AAPL", "AMZN", "BND", "DBC", "GLD", "HD", "IEF", "JNJ", "JPM", "KO",
             "MSFT", "NVDA", "PG", "QQQ", "SCHD", "SPY", "TLT", "VNQ", "VOO", "VTI",
-            "VTSAX", "VXUS", "VYM", "WMT", "XOM"]
+            "VTSAX", "VXUS", "VYM", "WMT", "XOM", "^IRX"]
 
 
 @pytest.fixture(scope="module")

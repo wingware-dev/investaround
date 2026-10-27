@@ -36,6 +36,8 @@ DEFAULT_SYMBOLS = [
     "AAPL", "MSFT", "JNJ", "KO", "AMZN", "NVDA", "VTSAX",
     # For the example portfolios
     "JPM", "PG", "XOM", "WMT", "HD", "TLT", "IEF", "DBC", "VYM", "SCHD",
+    # 13-week T-bill yield in percent, for interest on uninvested cash
+    "^IRX",
 ]
 
 

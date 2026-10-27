@@ -4,9 +4,11 @@ import math
 import pytest
 
 from investaround.analytics import (
-    AnalyticsError, compare_to_benchmark, daily_returns, metrics, portfolio_value_series, simulate,
+    AnalyticsError, compare_to_benchmark, daily_returns, lump_sum_vs_dca, metrics,
+    portfolio_value_series, simulate,
 )
 from investaround.models import Holding, PriceBar, PriceSeries
+from investaround.prices.fake import FakePriceSource
 
 D = dt.date
 
@@ -250,6 +252,46 @@ class TestCashInterest:
     def test_bad_rate(self, rate):
         with pytest.raises(AnalyticsError):
             simulate({"A": A}, {"A": 1}, deposits={DAYS[0]: 1000}, cash_rate=rate)
+
+
+class TestRecordedTbillYields:
+    """Cash earning real 13-week T-bill yields (^IRX, recorded in percent)."""
+
+    @pytest.fixture(scope="class")
+    def src(self):
+        return FakePriceSource()
+
+    def _cash_after(self, src, start, end):
+        irx = src.history("^IRX", start, end)
+        vs = portfolio_value_series([Holding("SPY", weight=75), Holding("ZZZ", weight=25)],
+                                    {"SPY": src.history("SPY", start, end)}, 1000,
+                                    cash_rate=irx)
+        return vs, irx
+
+    def test_2023_cash_earns_between_the_years_lowest_and_highest_yield(self, src):
+        vs, irx = self._cash_after(src, D(2023, 1, 1), D(2023, 12, 31))
+        days = (vs.end - vs.start).days
+        lo = min(b.close for b in irx.bars) / 100
+        hi = max(b.close for b in irx.bars) / 100
+        assert 0.042 < lo and hi < 0.054  # about 5% that year
+        assert 250 * grow(lo, days) < vs.cash[-1] < 250 * grow(hi, days)
+        assert metrics(vs).interest_earned == pytest.approx(vs.cash[-1] - 250)
+
+    def test_2021_near_zero_yields_earn_almost_nothing(self, src):
+        vs, _ = self._cash_after(src, D(2021, 1, 1), D(2021, 12, 31))
+        assert 0 < metrics(vs).interest_earned < 250 * 0.001
+
+    def test_waiting_dca_money_earns_tbill_interest(self, src):
+        start, end = D(2023, 1, 1), D(2023, 12, 31)
+        prices = {"SPY": src.history("SPY", start, end)}
+        plain = lump_sum_vs_dca(prices, {"SPY": 1}, 12_000, 12)
+        tbill = lump_sum_vs_dca(prices, {"SPY": 1}, 12_000, 12, cash_rate=src.history("^IRX", start, end))
+        earned = tbill.dca.metrics.interest_earned
+        # 12 parts of 1000 wait 0..11 months: on average 5500 for a year at about 5%
+        assert 150 < earned < 350
+        assert tbill.dca.metrics.final_value > plain.dca.metrics.final_value
+        assert tbill.lump.metrics.final_value == pytest.approx(plain.lump.metrics.final_value)
+        assert tbill.dca.series.cash[-1] == pytest.approx(0, abs=1e-6)
 
 
 class TestBenchmark:
