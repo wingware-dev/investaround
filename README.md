@@ -51,7 +51,10 @@ one.  Otherwise run:
 ```
 
 This starts the app at <http://127.0.0.1:8765/> and opens it in your
-browser.  Press Ctrl-C to stop it.  Options:
+browser.  Press Ctrl-C to stop it.  `.venv/bin/python run_investaround.py`
+does the same, for tools such as an IDE that run a script file rather
+than a module (`investaround/__main__.py` can't be run as a plain
+file).  Options:
 
 | Option | What it does |
 | --- | --- |
