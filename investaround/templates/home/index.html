@@ -1,13 +1,140 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
+{% block head %}
+<style>
+  .home-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); align-items: start; }
+  .home-grid > .card { margin-bottom: 0; }
+  .dashboard td { vertical-align: middle; }
+  .dashboard .name a { font-weight: 600; }
+  .dashboard .name .muted { font-size: .85rem; }
+  .nowrap { white-space: nowrap; }
+  .spark { display: block; }
+  .spark polyline { fill: none; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+  .spark.up polyline { stroke: var(--up); }
+  .spark.down polyline { stroke: var(--down); }
+  .spark.flat polyline { stroke: var(--muted); }
+  .totals-line { display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: .75rem; }
+  .totals-line .stat-label { color: var(--muted); font-size: .85rem; }
+  .totals-line .stat-value { font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .start-here ol { list-style: none; counter-reset: step; padding: 0; margin: 0; }
+  .start-here li { counter-increment: step; position: relative; padding: 0 0 .9rem 2.4rem; }
+  .start-here li::before {
+    content: counter(step); position: absolute; left: 0; top: .05rem; width: 1.7rem; height: 1.7rem;
+    border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: .9rem;
+    display: flex; align-items: center; justify-content: center; }
+  .start-here li a { font-weight: 600; }
+  .start-here li p { margin: .1rem 0 0; color: var(--muted); font-size: .92rem; }
+  .source-status { font-size: .9rem; }
+  .source-status p { margin: .2rem 0; }
+  @media (max-width: 800px) { .home-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block banner %}
+{% if status.errors %}
+<div class="banner error" role="alert" id="price-error">
+  <strong>Some prices are missing.</strong>
+  {% for e in status.errors %}{{ e }}{% if not loop.last %}; {% endif %}{% endfor %}.
+  Portfolios shown with — have no value until the prices come back; try again in a few minutes.
+</div>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <section class="hero">
   <h1>Try investing without risking a cent</h1>
   <p class="lead">Build pretend portfolios with real prices, watch them day by day,
      and see how they would have done in years past.</p>
 </section>
-<section class="card placeholder" data-stub="home">
-  <h2>Your dashboard</h2>
-  <p class="muted">Coming soon: your portfolios at a glance and a "start here" guide.</p>
-</section>
+
+<div class="home-grid">
+  <section class="card" aria-labelledby="dash-title">
+    <div class="row">
+      <h2 id="dash-title">Your portfolios</h2>
+      <span class="spacer"></span>
+      <a class="btn btn-secondary" href="{{ url_for('portfolios.new') }}">New portfolio</a>
+    </div>
+
+    {% if not rows %}
+    <div class="empty-state" id="no-portfolios">
+      <p>You don't have any portfolios yet. Pick 5 to 20 investments, split {{ dollars(start_cash) }} of
+         pretend money between them, and see how they do. Nothing is really bought.</p>
+      <p class="row">
+        <a class="btn" href="{{ url_for('examples.index') }}">Start from an example</a>
+        <a class="btn btn-secondary" href="{{ url_for('portfolios.new') }}">Build your own</a>
+      </p>
+    </div>
+    {% else %}
+    <div class="totals-line" id="totals">
+      <div><div class="stat-label">{% if totals.unpriced %}Portfolios with prices ({{ rows|length - totals.unpriced }} of {{ rows|length }}){% else %}All portfolios{% endif %}</div>
+           <div class="stat-value">{{ money(totals.value) }}</div></div>
+      <div><div class="stat-label">Today</div>
+           <div class="stat-value {{ direction(totals.day_change) }}">{{ money(totals.day_change, signed=True) }}
+             <span style="font-size: .9rem">({{ pct(totals.day_change_pct) }})</span></div></div>
+    </div>
+    <table class="dashboard">
+      <thead>
+        <tr>
+          <th>Portfolio</th>
+          <th class="num">Value</th>
+          <th class="num">Today</th>
+          <th class="num">Gain since start</th>
+          <th>Last {{ (spark_days / 30)|round|int }} months
+            <span class="tip" tabindex="0" data-tip="How today's holdings did over the last {{ spark_days }} days, as if bought and left alone.">?</span></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in rows %}
+        {% set pv = r.pv %}{% set p = pv.portfolio %}
+        <tr data-portfolio="{{ p.id }}">
+          <td class="name"><a href="{{ url_for('portfolios.watch', portfolio_id=p.id) }}">{{ p.name }}</a><br>
+            <span class="muted">{{ p.holdings|length }} investment{{ '' if p.holdings|length == 1 else 's' }},
+              <span class="nowrap">started {{ p.created.strftime("%b %-d, %Y") }}</span></span></td>
+          <td class="num">{{ money(pv.value) }}</td>
+          <td class="num {{ direction(pv.day_change) }}" data-today>{{ money(pv.day_change, signed=True) }}<br>
+            <span class="muted">{{ pct(pv.day_change_pct) }}</span></td>
+          <td class="num {{ direction(pv.gain) }}">{{ money(pv.gain, signed=True) }}<br>
+            <span class="muted">{{ pct(pv.gain_pct) }}</span></td>
+          <td>
+            {% if r.spark %}
+              {% set trend = 'up' if r.spark.last > r.spark.first else 'down' if r.spark.last < r.spark.first else 'flat' %}
+              <svg class="spark {{ trend }}" width="{{ spark_width }}" height="{{ spark_height }}"
+                   viewBox="0 0 {{ spark_width }} {{ spark_height }}" role="img"
+                   aria-label="{{ p.name }}: {{ r.spark.label }}"><title>{{ r.spark.label }}</title>
+                <polyline points="{{ r.spark.points }}"/></svg>
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    <div class="source-status" id="source-status">
+      <p><strong>Prices:</strong> {{ status.description }}.
+        {% if status.as_of %}Latest price from {{ status.as_of.strftime("%b %-d, %H:%M UTC") }}.{% endif %}</p>
+    </div>
+  </section>
+
+  <aside class="card start-here" aria-labelledby="start-title">
+    <h2 id="start-title">Start here</h2>
+    <ol>
+      <li><a href="{{ url_for('examples.index') }}">Look at some examples</a>
+        <p>Well-known mixes, explained in plain words, with how they did over 10 years.</p></li>
+      <li><a href="{{ url_for('portfolios.new') }}">Build your own portfolio</a>
+        <p>Pick 5 to 20 investments and split {{ dollars(start_cash) }} of pretend money between them.</p></li>
+      <li>{% if rows %}<a href="{{ url_for('portfolios.watch', portfolio_id=rows[0].pv.portfolio.id) }}">Watch it day by day</a>
+          {% else %}<a href="{{ url_for('portfolios.index') }}">Watch it day by day</a>{% endif %}
+        <p>See today's change and your gain since you started.</p></li>
+      <li><a href="{{ url_for('history.index') }}">See how it would have done</a>
+        <p>Run any mix through past years, crashes included.</p></li>
+      <li><a href="{{ url_for('learn.index') }}">Learn the basics</a>
+        <p>Short lessons on funds, fees, risk and diversification.</p></li>
+      <li><a href="{{ url_for('learn.lab') }}">Compare strategies in the lab</a>
+        <p>All at once, spread out over months, or rebalanced: which did better?</p></li>
+    </ol>
+  </aside>
+</div>
 {% endblock %}

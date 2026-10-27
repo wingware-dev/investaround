@@ -32,18 +32,20 @@ def test_try_it_copies_the_example_to_my_portfolios(page, live_app):
     page.goto("/examples/")
     card = page.locator("#example-three-fund")
     card.get_by_role("button", name="Try it as my portfolio").click()
-    notice = page.get_by_role("status")
-    notice.wait_for()
-    assert "Added Three-fund portfolio to your portfolios" in notice.inner_text()
-    assert notice.get_by_role("link", name="Go to My portfolios").get_attribute("href") == "/portfolios/"
+    # It opens the new portfolio's own watch page.
+    page.wait_for_url(live_app.url + "/portfolios/*/")
     [p] = live_app.store.list()
+    assert page.url == f"{live_app.url}/portfolios/{p.id}/"
+    assert page.get_by_role("heading", level=1).inner_text() == "Three-fund portfolio"
+    assert page.get_by_text("Copied from the “Three-fund portfolio” example.").is_visible()
     assert p.name == "Three-fund portfolio"
     assert p.source_example == "three-fund"
     assert [(h.symbol, h.weight) for h in p.holdings] == [("VTI", 50), ("VXUS", 30), ("BND", 20)]
 
     # Trying it again makes a second copy rather than overwriting the first.
+    page.goto("/examples/")
     page.locator("#example-three-fund").get_by_role("button", name="Try it as my portfolio").click()
-    page.get_by_text("Added Three-fund portfolio (2)").wait_for()
+    page.get_by_role("heading", level=1, name="Three-fund portfolio (2)").wait_for()
     assert sorted(p.name for p in live_app.store.list()) == ["Three-fund portfolio", "Three-fund portfolio (2)"]
 
 

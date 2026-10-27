@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-from flask import Blueprint, abort, redirect, render_template, request, url_for
+from flask import Blueprint, abort, redirect, render_template, url_for
 
 from ..app import get_prices, get_store
 from ..models import DEFAULT_START_CASH, Holding, Portfolio
@@ -170,15 +170,10 @@ def index():
                 "benchmark": [bench_by_month.get(m) for m in g.months],
             }
 
-    added = None
-    added_id = request.args.get("added")
-    if added_id:
-        added = next((p for p in get_store().list() if p.id == added_id), None)
-
     return render_template(
         "examples/index.html",
         cards=cards, benchmark=benchmark, benchmark_name=BENCHMARK_NAME, chart_years=CHART_YEARS,
-        start_cash=DEFAULT_START_CASH, chart_data=chart_data, added=added,
+        start_cash=DEFAULT_START_CASH, chart_data=chart_data,
     )
 
 
@@ -191,4 +186,4 @@ def try_example(example_id: str):
     store = get_store()
     portfolio = ex.to_portfolio({p.name for p in store.list()})
     store.add(portfolio)
-    return redirect(url_for("examples.index", added=portfolio.id) + f"#example-{ex.id}", code=303)
+    return redirect(url_for("portfolios.watch", portfolio_id=portfolio.id), code=303)

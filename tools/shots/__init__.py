@@ -14,7 +14,7 @@ so steps never edit a shared file:
 The shot function leaves ``page`` showing what to capture; tools/shots.py
 then writes docs/shots/<name>.png.  Every shot gets a fresh app (fake price
 source, empty temp data dir) and a fresh 1280x800 page.  Names are
-``NN-words``: 0x skeleton, 1x portfolios, 2x history, 3x examples, 4x learn.
+``NN-words``: 0x skeleton, 1x portfolios, 2x history, 3x examples, 4x learn, 5x home dashboard.
 """
 
 from __future__ import annotations

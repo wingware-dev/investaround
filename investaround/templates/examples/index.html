@@ -32,13 +32,6 @@
   <p class="hint">The past does not predict the future: these show how an idea behaved, not what it will do next.</p>
 </div>
 
-{% if added %}
-<div class="card notice" role="status" id="added-notice">
-  Added <strong>{{ added.name }}</strong> to your portfolios.
-  <a href="{{ url_for('portfolios.index') }}">Go to My portfolios</a>
-</div>
-{% endif %}
-
 <div class="examples-grid">
 {% for card in cards %}
   {% set ex = card.example %}
