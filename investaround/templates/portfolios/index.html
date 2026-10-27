@@ -1,8 +1,53 @@
 {% extends "base.html" %}
 {% block title %}My portfolios{% endblock %}
 {% block content %}
-<h1>My portfolios</h1>
-<section class="card placeholder" data-stub="portfolios">
-  <p class="muted">Coming soon: build a portfolio with $10,000 of pretend money and watch it every day.</p>
+<div class="row">
+  <h1>My portfolios</h1>
+  <span class="spacer"></span>
+  <a class="btn" href="{{ url_for('portfolios.new') }}">New portfolio</a>
+</div>
+
+{% if deleted %}
+<p class="card notice" role="status">Deleted <strong>{{ deleted }}</strong>.</p>
+{% endif %}
+
+{% if not values %}
+<section class="card empty-state">
+  <h2>Try investing with pretend money</h2>
+  <p>Pick 5 to 20 investments, split {{ dollars(start_cash) }} of pretend money between them,
+     and watch how they do day to day. Nothing is really bought.</p>
+  <p class="row">
+    <a class="btn" href="{{ url_for('portfolios.new') }}">Build your first portfolio</a>
+    <a class="btn btn-secondary" href="{{ url_for('examples.index') }}">Start from an example</a>
+  </p>
 </section>
+{% else %}
+<section class="card">
+  <table class="portfolio-list">
+    <thead>
+      <tr>
+        <th>Portfolio</th>
+        <th class="num">Investments</th>
+        <th>Started</th>
+        <th class="num">Value</th>
+        <th class="num">Today</th>
+        <th class="num">Gain since start</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for pv in values %}
+      {% set p = pv.portfolio %}
+      <tr>
+        <td><a href="{{ url_for('portfolios.watch', portfolio_id=p.id) }}">{{ p.name }}</a></td>
+        <td class="num">{{ p.holdings|length }}</td>
+        <td>{{ p.created.strftime("%b %-d, %Y") }}</td>
+        <td class="num">{{ money(pv.value) }}</td>
+        <td class="num {{ direction(pv.day_change) }}">{{ pct(pv.day_change_pct) }}</td>
+        <td class="num {{ direction(pv.gain) }}">{{ money(pv.gain, signed=True) }} ({{ pct(pv.gain_pct) }})</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
 {% endblock %}

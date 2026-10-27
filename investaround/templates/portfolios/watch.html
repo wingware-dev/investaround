@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% set p = pv.portfolio %}
+{% block title %}{{ p.name }}{% endblock %}
+{% block head %}
+<style>
+  .summary-cards { display: grid; gap: 1rem; grid-template-columns: repeat(3, 1fr); }
+  .summary-cards .card { margin-bottom: 1rem; }
+  .stat-label { color: var(--muted); font-size: .9rem; }
+  .stat-value { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .small { font-size: .85rem; }
+  .btn-small { padding: .25rem .6rem; font-size: .9rem; }
+  .watch-table td { vertical-align: top; }
+  .updated { color: var(--muted); font-size: .9rem; }
+  .updated-row { margin-bottom: 1rem; }
+  .watch-head { align-items: flex-start; }
+  @media (max-width: 640px) { .summary-cards { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+{% block content %}
+<div id="watch" data-table-url="{{ url_for('portfolios.watch_table', portfolio_id=p.id) }}">
+  <div class="row watch-head">
+    <div>
+      <h1>{{ p.name }}</h1>
+      <p class="muted">Started {{ p.created.strftime("%b %-d, %Y") }} with {{ dollars(pv.started_with) }} of pretend money
+        {%- if pv.start_dates %}, bought at the closing prices of
+          {{ pv.start_dates[-1].strftime("%b %-d, %Y") }}{% endif %}.</p>
+    </div>
+    <span class="spacer"></span>
+    <a class="btn btn-secondary" href="{{ url_for('portfolios.edit', portfolio_id=p.id) }}">Edit</a>
+    <a class="btn btn-secondary" href="{{ url_for('portfolios.delete', portfolio_id=p.id) }}">Delete</a>
+  </div>
+
+  <div class="row updated-row">
+    <span class="updated" id="last-updated" aria-live="polite">
+      Last updated <time id="checked-at" datetime="{{ pv.checked_at.isoformat() }}">{{ pv.checked_at.strftime("%H:%M UTC") }}</time>
+      <span id="prices-as-of"></span>
+    </span>
+    <button type="button" class="btn btn-secondary btn-small" id="refresh">Refresh prices</button>
+  </div>
+
+  {% for w in warnings %}<p class="hint">{{ w }}.</p>{% endfor %}
+
+  {% include "portfolios/_watch_table.html" %}
+
+  {% if p.notes %}
+  <section class="card">
+    <h2>Notes</h2>
+    <p style="white-space: pre-line">{{ p.notes }}</p>
+  </section>
+  {% endif %}
+  <p class="hint">Prices may be delayed. Nothing here is real money and nothing is bought or sold.</p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/portfolio.js') }}"></script>
+{% endblock %}

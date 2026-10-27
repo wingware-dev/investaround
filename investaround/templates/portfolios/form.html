@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% from "portfolios/_holding_row.html" import holding_row %}
+{% block title %}{{ "Edit " ~ portfolio.name if portfolio else "Build a portfolio" }}{% endblock %}
+{% block head %}
+<style>
+  .builder .search-box { position: relative; max-width: 34rem; }
+  .builder .search-box input { width: 100%; }
+  .search-results {
+    list-style: none; margin: .25rem 0 0; padding: 0; position: absolute; left: 0; right: 0; z-index: 5;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow);
+  }
+  .search-results li { margin: 0; }
+  .search-results button {
+    display: flex; gap: .75rem; width: 100%; padding: .5rem .75rem; text-align: left;
+    background: none; border: none; font: inherit; cursor: pointer; color: var(--text);
+  }
+  .search-results button:hover, .search-results button:focus { background: var(--bg); outline: none; }
+  .search-results .sym { font-weight: 700; min-width: 5.5rem; }
+  .search-results .kind { margin-left: auto; }
+  .search-results .message { padding: .5rem .75rem; color: var(--muted); }
+  .holdings input.weight { width: 6rem; text-align: right; }
+  .holdings .empty td { color: var(--muted); text-align: center; padding: 1.25rem; }
+  .btn-small { padding: .25rem .6rem; font-size: .9rem; }
+  .builder-status { margin-top: .75rem; }
+  .builder-status .ok { color: var(--up); }
+  .builder-status .bad { color: var(--down); }
+  .spread-hint { margin: .5rem 0 0; }
+  .form-errors ul { margin: .25rem 0 0; }
+  #name { width: 100%; max-width: 30rem; }
+  #notes { width: 100%; }
+</style>
+{% endblock %}
+{% block content %}
+<h1>{{ "Edit " ~ portfolio.name if portfolio else "Build a portfolio" }}</h1>
+<p class="lead">You have {{ dollars(start_cash) }} of pretend money. Pick the investments you'd like to try
+  and say what share of the money goes into each.</p>
+
+{% if errors %}
+<div class="card notice notice-error form-errors" role="alert">
+  <strong>Please fix {{ "this" if errors|length == 1 else "these" }} before saving:</strong>
+  <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<form method="post" class="builder" id="builder" novalidate
+      data-start-cash="{{ start_cash }}" data-max="{{ max_holdings }}" data-suggested-min="{{ suggested_min }}"
+      data-search-url="{{ url_for('api_search') }}">
+  <section class="card">
+    <div class="field">
+      <label for="name">Portfolio name</label>
+      <input id="name" name="name" value="{{ name }}" maxlength="80" required
+             placeholder="For example: My first mix">
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Investments</h2>
+    <p class="hint">Most people spread their money over <strong>{{ suggested_min }} to {{ max_holdings }}</strong>
+      investments, so one bad pick can't sink the whole portfolio. A fund (ETF or mutual fund) already holds many
+      companies, so a few funds can be well spread too.</p>
+
+    <div class="field search-box">
+      <label for="search">Find an investment</label>
+      <input id="search" type="search" autocomplete="off" placeholder="Name or symbol, like Vanguard, Apple or SPY"
+             aria-controls="search-results" aria-describedby="search-help">
+      <ul id="search-results" class="search-results" role="listbox" aria-label="Search results" hidden></ul>
+      <p id="search-help" class="hint">Type at least 2 letters, then pick from the list.</p>
+    </div>
+
+    <table class="holdings">
+      <thead>
+        <tr><th>Symbol</th><th>Name</th><th class="num">Weight</th><th class="num">Amount</th><th></th></tr>
+      </thead>
+      <tbody id="holdings">
+        {% for row in rows %}{{ holding_row(row) }}{% endfor %}
+        <tr class="empty" {% if rows %}hidden{% endif %}><td colspan="5">No investments yet: search above to add some.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="builder-status row">
+      <span id="holding-count" aria-live="polite"></span>
+      <span id="weight-total" aria-live="polite"></span>
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-secondary btn-small" id="split-evenly">Split evenly</button>
+    </div>
+    <p id="spread-hint" class="hint spread-hint" aria-live="polite"></p>
+  </section>
+
+  <section class="card">
+    <div class="field">
+      <label for="notes">Notes <span class="muted">(optional)</span></label>
+      <textarea id="notes" name="notes" rows="3"
+                placeholder="Why you picked these, what you expect to happen...">{{ notes }}</textarea>
+    </div>
+    {% if portfolio %}
+    <p class="hint">Changing investments or weights starts the portfolio again from today, as if you had sold
+      everything and bought the new mix. Changing only the name or notes keeps its history.</p>
+    {% endif %}
+    <div class="row">
+      <button type="submit" class="btn">{{ "Save changes" if portfolio else "Create portfolio" }}</button>
+      <a class="btn btn-secondary"
+         href="{{ url_for('portfolios.watch', portfolio_id=portfolio.id) if portfolio else url_for('portfolios.index') }}">Cancel</a>
+    </div>
+  </section>
+</form>
+
+<template id="holding-row-template">{{ holding_row({"symbol": "", "name": "", "weight": ""}) }}</template>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/portfolio.js') }}"></script>
+{% endblock %}

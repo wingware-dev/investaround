@@ -1,0 +1,18 @@
+{# One investment in the builder.  portfolio.js clones the blank copy in
+   <template id="holding-row-template"> for each investment the user adds. #}
+{% macro holding_row(row) %}
+<tr class="holding-row" data-symbol="{{ row.symbol }}">
+  <td>
+    <strong class="holding-symbol">{{ row.symbol }}</strong>
+    <input type="hidden" name="symbol" value="{{ row.symbol }}">
+    <input type="hidden" name="holding_name" value="{{ row.name }}">
+  </td>
+  <td class="holding-name">{{ row.name }}</td>
+  <td class="num">
+    <input class="weight" name="weight" type="number" min="0" max="100" step="any" inputmode="decimal"
+           value="{{ row.weight }}" aria-label="Weight for {{ row.symbol }} (%)"> %
+  </td>
+  <td class="num holding-amount"></td>
+  <td><button type="button" class="btn btn-secondary btn-small remove" aria-label="Remove {{ row.symbol }}">Remove</button></td>
+</tr>
+{% endmacro %}

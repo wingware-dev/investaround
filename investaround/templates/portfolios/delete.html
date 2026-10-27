@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ portfolio.name }}{% endblock %}
+{% block content %}
+<h1>Delete {{ portfolio.name }}?</h1>
+<section class="card">
+  <p>This removes the portfolio and its {{ portfolio.holdings|length }} investment{{ "" if portfolio.holdings|length == 1 else "s" }}
+     for good. It was only pretend money, so nothing is sold.</p>
+  <form method="post" class="row">
+    <button type="submit" class="btn btn-danger">Delete portfolio</button>
+    <a class="btn btn-secondary" href="{{ url_for('portfolios.watch', portfolio_id=portfolio.id) }}">Keep it</a>
+  </form>
+</section>
+{% endblock %}

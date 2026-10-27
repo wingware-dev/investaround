@@ -1,0 +1,65 @@
+{# The watch page's live part; also served alone by portfolios.watch_table for Refresh. #}
+<div id="watch-live" data-checked-at="{{ pv.checked_at.isoformat() }}"
+     data-prices-as-of="{{ pv.prices_as_of.isoformat() if pv.prices_as_of else '' }}">
+  {% if pv.error %}
+  <p class="card notice notice-error" role="alert">{{ pv.error }}</p>
+  {% elif pv.missing %}
+  <p class="card notice" role="status">No price right now for {{ pv.missing|join(", ") }}; the totals leave
+    {{ "it" if pv.missing|length == 1 else "them" }} out.</p>
+  {% endif %}
+
+  <section class="summary-cards">
+    <div class="card stat">
+      <div class="stat-label">Worth now</div>
+      <div class="stat-value" data-stat="value">{{ money(pv.value) }}</div>
+      <div class="muted">started with {{ dollars(pv.started_with) }}</div>
+    </div>
+    <div class="card stat">
+      <div class="stat-label">Today</div>
+      <div class="stat-value {{ direction(pv.day_change) }}" data-stat="day">{{ money(pv.day_change, signed=True) }}</div>
+      <div class="{{ direction(pv.day_change) }}">{{ pct(pv.day_change_pct) }}</div>
+    </div>
+    <div class="card stat">
+      <div class="stat-label">Gain since start</div>
+      <div class="stat-value {{ direction(pv.gain) }}" data-stat="gain">{{ money(pv.gain, signed=True) }}</div>
+      <div class="{{ direction(pv.gain) }}">{{ pct(pv.gain_pct) }}</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <table class="watch-table">
+      <thead>
+        <tr>
+          <th>Investment</th>
+          <th class="num">Weight</th>
+          <th class="num">Price</th>
+          <th class="num">Today <span class="tip" tabindex="0" data-tip="How much the price moved since the last trading day's close.">?</span></th>
+          <th class="num">Value</th>
+          <th class="num">Gain since start <span class="tip" tabindex="0" data-tip="What your pretend money in this investment has gained or lost since you started, counting dividends.">?</span></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in pv.rows %}
+        <tr data-symbol="{{ r.symbol }}">
+          <td><strong>{{ r.symbol }}</strong><div class="muted small">{{ r.name or r.problem or "" }}</div></td>
+          <td class="num">{{ (weight_text(r.weight) ~ "%") if r.weight is not none else ("%g shares"|format(r.shares)) }}</td>
+          <td class="num">{{ money(r.price) }}</td>
+          <td class="num {{ direction(r.change) }}">{{ money(r.change, signed=True) }}<div class="small">{{ pct(r.change_pct) }}</div></td>
+          <td class="num">{{ money(r.value) }}<div class="small muted">{{ money(r.day_change, signed=True) }} today</div></td>
+          <td class="num {{ direction(r.gain) }}">{{ money(r.gain, signed=True) }}<div class="small">{{ pct(r.gain_pct) }}</div></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>Total</td>
+          <td class="num">{% if pv.rows and pv.rows[0].weight is not none %}100%{% endif %}</td>
+          <td></td>
+          <td class="num {{ direction(pv.day_change) }}">{{ pct(pv.day_change_pct) }}</td>
+          <td class="num">{{ money(pv.value) }}<div class="small muted">{{ money(pv.day_change, signed=True) }} today</div></td>
+          <td class="num {{ direction(pv.gain) }}">{{ money(pv.gain, signed=True) }}<div class="small">{{ pct(pv.gain_pct) }}</div></td>
+        </tr>
+      </tfoot>
+    </table>
+  </section>
+</div>
