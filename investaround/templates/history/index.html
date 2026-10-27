@@ -1,8 +1,197 @@
 {% extends "base.html" %}
 {% block title %}What if?{% endblock %}
+{% block head %}
+<style>
+  .history-form .row { align-items: flex-end; }
+  .history-form .field { margin-bottom: .75rem; }
+  .history-form .grow { flex: 1; min-width: 16rem; }
+  .history-form select, .history-form input[type=text] { width: 100%; }
+  .history-form #benchmark { width: 7rem; }
+  .history-form fieldset { border: none; padding: 0; margin: .25rem 0 0; }
+  .history-form legend { font-weight: 600; margin-bottom: .35rem; padding: 0; }
+  .presets { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .6rem; }
+  .presets .btn { padding: .35rem .75rem; }
+  .presets .btn[aria-pressed=false] { background: var(--surface); color: var(--accent); }
+  .presets .btn[aria-pressed=false]:hover { background: var(--bg); }
+  .custom-range { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; font-size: .95rem; }
+  .custom-range input { width: auto; }
+  .headline { font-size: 1.2rem; margin: 0 0 .4rem; }
+  .headline strong { font-size: 1.35rem; }
+  .chart-legend { font-size: .85rem; color: var(--muted); margin: .5rem 0 0; }
+  .swatch { display: inline-block; width: 1.6em; height: 0; vertical-align: middle; margin-right: .3em; border-top: 3px solid var(--accent); }
+  .swatch.bench { border-top: 2px dashed #9aa3b5; }
+  .metrics td.detail, .detail { color: var(--muted); font-size: .85rem; }
+  .metrics { max-width: 44rem; }
+  .metrics th[scope=row] { color: var(--text); font-size: .95rem; white-space: nowrap; }
+  .holdings-table .sym { font-family: var(--mono); font-weight: 600; }
+  .holdings-table .late { color: #8a5a00; }
+  .notes-list { margin: .3rem 0 0; padding-left: 1.2rem; }
+  .table-scroll { overflow-x: auto; }
+</style>
+{% endblock %}
 {% block content %}
-<h1>What if?</h1>
-<section class="card placeholder" data-stub="history">
-  <p class="muted">Coming soon: see how a portfolio would have done over past years, crashes included.</p>
+<div class="hero">
+  <h1>What if?</h1>
+  <p class="lead">See how a portfolio would have done if you had bought it in the past and left it alone,
+    crashes included. Dividends are counted as if they were reinvested.</p>
+  <p class="hint">The past does not predict the future: this shows how a mix behaved, not what it will do next.</p>
+</div>
+
+<form method="get" action="{{ url_for('history.index') }}" class="card history-form" id="history-form">
+  <div class="row">
+    <div class="field grow">
+      <label for="what">What to test</label>
+      <select id="what" name="what">
+        {% if portfolios %}
+        <optgroup label="My portfolios">
+          {% for p in portfolios %}
+          <option value="p:{{ p.id }}" {% if form.what == 'p:' ~ p.id %}selected{% endif %}>{{ p.name }}</option>
+          {% endfor %}
+        </optgroup>
+        {% endif %}
+        <optgroup label="Examples">
+          {% for ex in examples %}
+          <option value="e:{{ ex.id }}" {% if form.what == 'e:' ~ ex.id %}selected{% endif %}>{{ ex.name }}</option>
+          {% endfor %}
+        </optgroup>
+        <option value="custom" {% if form.what == 'custom' %}selected{% endif %}>Your own mix…</option>
+      </select>
+      {% if form.errors.what %}<p class="field-error" role="alert">{{ form.errors.what }}</p>{% endif %}
+    </div>
+    <div class="field grow" id="symbols-field">
+      <label for="symbols">Your own mix</label>
+      <input type="text" id="symbols" name="symbols" value="{{ form.symbols }}"
+             placeholder="VTI 60, BND 40   (or VTI, BND to split evenly)" autocomplete="off">
+      {% if form.errors.symbols %}<p class="field-error" role="alert">{{ form.errors.symbols }}</p>{% endif %}
+    </div>
+    <div class="field">
+      <label for="benchmark">Compare with
+        <span class="tip" tabindex="0" data-tip="A yardstick to measure against. SPY follows the S&P 500, the 500 biggest US companies, which is the usual one.">?</span></label>
+      <input type="text" id="benchmark" name="benchmark" value="{{ form.benchmark }}" autocomplete="off">
+      {% if form.errors.benchmark %}<p class="field-error" role="alert">{{ form.errors.benchmark }}</p>{% endif %}
+    </div>
+    <div class="field">
+      <button class="btn" type="submit" name="range" value="{{ form.range }}">Show me</button>
+    </div>
+  </div>
+
+  <fieldset>
+    <legend>Date range</legend>
+    <div class="presets">
+      {% for p in presets %}
+      <button class="btn" type="submit" name="range" value="{{ p.key }}" title="{{ p.blurb }}"
+              aria-pressed="{{ 'true' if form.submitted and form.range == p.key else 'false' }}">{{ p.label }}</button>
+      {% endfor %}
+    </div>
+    <div class="custom-range">
+      <label for="start" class="muted" style="font-weight: 400; margin: 0">Or from</label>
+      <input type="date" id="start" name="start" value="{{ form.start }}" max="{{ today.isoformat() }}">
+      <label for="end" class="muted" style="font-weight: 400; margin: 0">to</label>
+      <input type="date" id="end" name="end" value="{{ form.end }}" max="{{ today.isoformat() }}">
+      <button class="btn btn-secondary" type="submit" name="range" value="custom"
+              aria-pressed="{{ 'true' if form.submitted and form.range == 'custom' else 'false' }}">Use these dates</button>
+    </div>
+    {% if form.errors.range %}<p class="field-error" role="alert">{{ form.errors.range }}</p>{% endif %}
+  </fieldset>
+</form>
+
+{% if form.errors.prices %}
+<div class="card notice notice-error" role="alert">{{ form.errors.prices }}</div>
+{% endif %}
+
+{% if result %}
+{% set m = result.metrics %}
+{% set c = result.comparison %}
+<section class="card" id="results" aria-labelledby="results-heading">
+  <h2 id="results-heading">{{ result.subject.name }}{% if preset %}: {{ preset.label }}{% endif %}</h2>
+  <p class="headline" data-headline>
+    {{ fmt_money(m.deposited) }} put in on {{ fmt_date(m.start) }} would have been worth
+    <strong class="{{ 'up' if m.gain >= 0 else 'down' }}" data-final>{{ fmt_money(m.final_value) }}</strong>
+    on {{ fmt_date(m.end) }}.
+  </p>
+  {% if c %}
+  <p class="muted" data-benchmark-line>The same money in {{ result.benchmark }}
+    {% if result.benchmark_name != result.benchmark %}({{ result.benchmark_name }}){% endif %}
+    would have been worth {{ fmt_money(c.benchmark.final_value) }}.</p>
+  {% endif %}
+  {% if preset and not preset.years and preset.start %}<p class="hint">{{ preset.blurb }}.</p>{% endif %}
+
+  {% if start_notes or form.notes or result.benchmark_problem %}
+  <div class="card notice" role="note" id="start-notes">
+    <strong>Good to know</strong>
+    <ul class="notes-list">
+      {% for n in form.notes %}<li>{{ n }}</li>{% endfor %}
+      {% for n in start_notes %}<li>{{ n }}</li>{% endfor %}
+      {% if result.benchmark_problem %}<li>{{ result.benchmark_problem }}</li>{% endif %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="chart-box"><canvas id="history-chart"
+       aria-label="Growth of {{ fmt_money(m.deposited) }} in {{ result.subject.name }} from {{ fmt_date(m.start) }} to {{ fmt_date(m.end) }}"></canvas></div>
+  <p class="chart-legend"><span class="swatch"></span>{{ result.subject.name }}
+    {% if c %}&nbsp;&nbsp;<span class="swatch bench"></span>{{ result.benchmark }}{% if result.benchmark_name != result.benchmark %} ({{ result.benchmark_name }}){% endif %}{% endif %}</p>
 </section>
+
+<section class="card" aria-labelledby="metrics-heading">
+  <h2 id="metrics-heading">The numbers</h2>
+  <table class="metrics" id="metrics">
+    <thead><tr><th></th><th class="num">{{ result.subject.name }}</th>{% if c %}<th class="num">{{ result.benchmark }}</th>{% endif %}</tr></thead>
+    <tbody>
+    {% for key, label in metric_rows %}
+      {% set cell = cells[key] %}
+      <tr data-metric="{{ key }}">
+        <th scope="row">{{ label }} <span class="tip" tabindex="0" data-tip="{{ metric_tips[key] }}">?</span></th>
+        <td class="num"><span class="{{ cell.cls }}">{{ cell.text }}</span>{% if cell.detail %}<br><span class="detail">{{ cell.detail }}</span>{% endif %}</td>
+        {% if c %}{% set b = bench_cells[key] %}
+        <td class="num"><span class="{{ b.cls }}">{{ b.text }}</span>{% if b.detail %}<br><span class="detail">{{ b.detail }}</span>{% endif %}</td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="card" aria-labelledby="holdings-heading">
+  <h2 id="holdings-heading">Each holding</h2>
+  <div class="table-scroll">
+  <table class="holdings-table" id="holdings">
+    <thead><tr>
+      <th>Holding</th><th class="num">Weight</th><th>Started</th>
+      <th class="num">Put in</th><th class="num">Worth at end</th>
+      <th class="num">Its own return <span class="tip" tabindex="0" data-tip="How much this one investment grew while it was held, dividends included.">?</span></th>
+      <th class="num">Adds to total <span class="tip" tabindex="0" data-tip="This holding's gain or loss as a share of all the money put in. These add up to the portfolio's total return.">?</span></th>
+    </tr></thead>
+    <tbody>
+    {% for h in holding_rows %}
+      <tr data-symbol="{{ h.symbol }}">
+        <td class="sym">{{ h.symbol }}</td>
+        <td class="num">{{ h.weight }}</td>
+        <td class="{{ 'late' if h.late }}">{{ h.started }}</td>
+        <td class="num">{{ h.invested }}</td>
+        <td class="num">{{ h.final }}<br><span class="detail {{ h.gain_cls }}">{{ h.gain }}</span></td>
+        <td class="num {{ h.own_cls }}">{{ h.own }}</td>
+        <td class="num {{ h.contribution_cls }}">{{ h.contribution }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+    {% if result.series.cash[-1] > 0.5 %}
+    <tbody><tr data-symbol="cash"><td>Cash</td><td></td><td class="muted">Never invested</td><td></td>
+      <td class="num">{{ fmt_money(result.series.cash[-1]) }}</td><td></td><td></td></tr></tbody>
+    {% endif %}
+  </table>
+  </div>
+</section>
+
+<script type="application/json" id="history-chart-data">{{ chart_data | tojson }}</script>
+{% elif not form.submitted %}
+<section class="card" id="history-empty">
+  <p>Pick a portfolio, one of the examples, or type your own mix of symbols, then a date range.
+    Try <strong>2008 crash</strong> to see how a mix held up in a really bad time.</p>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
 {% endblock %}
