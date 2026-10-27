@@ -5,8 +5,9 @@ import pytest
 from investaround.prices.base import PriceSource, PriceSourceError, UnknownSymbol
 from investaround.prices.fake import FakePriceSource
 
-RECORDED = ["AAPL", "AMZN", "BND", "GLD", "JNJ", "KO", "MSFT", "NVDA", "QQQ",
-            "SPY", "VNQ", "VOO", "VTI", "VTSAX", "VXUS"]
+RECORDED = ["AAPL", "AMZN", "BND", "DBC", "GLD", "HD", "IEF", "JNJ", "JPM", "KO",
+            "MSFT", "NVDA", "PG", "QQQ", "SCHD", "SPY", "TLT", "VNQ", "VOO", "VTI",
+            "VTSAX", "VXUS", "VYM", "WMT", "XOM"]
 
 
 @pytest.fixture(scope="module")

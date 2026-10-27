@@ -34,6 +34,8 @@ PAUSE_SECONDS = 1.5
 DEFAULT_SYMBOLS = [
     "SPY", "VOO", "VTI", "VXUS", "BND", "QQQ", "VNQ", "GLD",
     "AAPL", "MSFT", "JNJ", "KO", "AMZN", "NVDA", "VTSAX",
+    # For the example portfolios
+    "JPM", "PG", "XOM", "WMT", "HD", "TLT", "IEF", "DBC", "VYM", "SCHD",
 ]
 
 

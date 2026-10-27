@@ -38,25 +38,30 @@
       "id": "all-weather",
       "name": "All-weather style",
       "tagline": "Built to hold up in any economy, not to win in the best one.",
-      "idea": "A simplified take on an idea made famous by the hedge fund Bridgewater: hold assets that each do well in a different kind of economy. Stocks for growth, a lot of bonds for slowdowns, and gold for inflation or panic. The aim is small drops rather than big gains.",
-      "risks": "With most of the money in bonds it grows slowly, and it had a bad 2022 when bonds fell. Gold can go years without gaining. The real version also uses long-term bonds and commodities, which this simple copy leaves out.",
+      "idea": "A version of the mix made famous by Ray Dalio of the hedge fund Bridgewater: hold assets that each do well in a different kind of economy. Stocks for growth, long-term and medium-term government bonds for slowdowns, and gold and commodities (oil, metals, crops) for inflation. The aim is small drops rather than big gains.",
+      "risks": "With most of the money in bonds it grows slowly. Long-term bonds swing a lot when interest rates move: TLT lost about 30% in 2022 alone, so this mix had a bad year. Gold and commodities can go years without gaining.",
       "holdings": [
         {"symbol": "VTI", "weight": 30, "what": "Total US stock market"},
-        {"symbol": "BND", "weight": 55, "what": "Total US bond market"},
-        {"symbol": "GLD", "weight": 15, "what": "Gold"}
+        {"symbol": "TLT", "weight": 40, "what": "Long-term US government bonds"},
+        {"symbol": "IEF", "weight": 15, "what": "Medium-term US government bonds"},
+        {"symbol": "GLD", "weight": 7.5, "what": "Gold"},
+        {"symbol": "DBC", "weight": 7.5, "what": "Commodities (oil, metals, crops)"}
       ]
     },
     {
       "id": "dividend-payers",
       "name": "Dividend payers",
       "tagline": "Steady companies that pay you cash every few months.",
-      "idea": "Some mature companies share their profits as regular cash payments called dividends. Owners like the income and the feeling of being paid to wait. This example mixes long-time dividend raisers with real-estate trusts (REITs), which must pay out most of their income.",
-      "risks": "Only a few companies, so one bad year at any of them hurts. A dividend is not guaranteed: companies cut them when times are hard. Dividend stocks often trail the market when fast growers lead, and REITs are hit by rising interest rates.",
+      "idea": "Some mature companies share their profits as regular cash payments called dividends. Owners like the income and the feeling of being paid to wait. This example puts half the money in two dividend funds that each hold hundreds of such companies, and the rest in a few long-time dividend raisers and real-estate trusts (REITs), which must pay out most of their income.",
+      "risks": "A dividend is not guaranteed: companies cut them when times are hard. Dividend stocks lean toward banks, energy and consumer staples and away from tech, so they often trail the market when fast growers lead. REITs are hit by rising interest rates.",
       "holdings": [
-        {"symbol": "JNJ", "weight": 30, "what": "Johnson & Johnson (health care)"},
-        {"symbol": "KO", "weight": 30, "what": "Coca-Cola (drinks)"},
-        {"symbol": "MSFT", "weight": 20, "what": "Microsoft (software)"},
-        {"symbol": "VNQ", "weight": 20, "what": "Real-estate trusts (REITs)"}
+        {"symbol": "VYM", "weight": 25, "what": "High-dividend US stocks fund"},
+        {"symbol": "SCHD", "weight": 25, "what": "US dividend stocks fund"},
+        {"symbol": "JNJ", "weight": 10, "what": "Johnson & Johnson (health care)"},
+        {"symbol": "KO", "weight": 10, "what": "Coca-Cola (drinks)"},
+        {"symbol": "PG", "weight": 10, "what": "Procter & Gamble (household goods)"},
+        {"symbol": "HD", "weight": 10, "what": "Home Depot (home improvement)"},
+        {"symbol": "VNQ", "weight": 10, "what": "Real-estate trusts (REITs)"}
       ]
     },
     {
@@ -75,17 +80,21 @@
     },
     {
       "id": "blue-chips",
-      "name": "Six blue-chip stocks",
-      "tagline": "Pick a handful of famous, well-established companies yourself.",
-      "idea": "Rather than a fund, own shares of a few large companies you know, spread across different industries: technology, online shopping, health care and drinks. It is a good way to learn how single stocks move compared with funds.",
-      "risks": "Six companies is not much spreading: if one stumbles it moves the whole portfolio. Famous companies can still fall a long way or fall behind for years. You also have to keep an eye on each one, which a fund does for you.",
+      "name": "10 blue-chip stocks",
+      "tagline": "Pick ten famous, well-established companies yourself instead of a fund.",
+      "idea": "Rather than a fund, own equal amounts of ten large companies you know, spread across different industries: technology, online shopping, banking, health care, household goods, drinks, energy and retail. It is a good way to learn how single stocks move compared with funds.",
+      "risks": "Ten companies is still not much spreading: if one stumbles it moves the whole portfolio. Famous companies can still fall a long way or fall behind for years. You also have to keep an eye on each one, which a fund does for you.",
       "holdings": [
-        {"symbol": "AAPL", "weight": 17, "what": "Apple (devices)"},
-        {"symbol": "MSFT", "weight": 17, "what": "Microsoft (software)"},
-        {"symbol": "AMZN", "weight": 17, "what": "Amazon (online shopping, cloud)"},
-        {"symbol": "JNJ", "weight": 17, "what": "Johnson & Johnson (health care)"},
-        {"symbol": "NVDA", "weight": 16, "what": "NVIDIA (chips)"},
-        {"symbol": "KO", "weight": 16, "what": "Coca-Cola (drinks)"}
+        {"symbol": "AAPL", "weight": 10, "what": "Apple (devices)"},
+        {"symbol": "MSFT", "weight": 10, "what": "Microsoft (software)"},
+        {"symbol": "AMZN", "weight": 10, "what": "Amazon (online shopping, cloud)"},
+        {"symbol": "NVDA", "weight": 10, "what": "NVIDIA (chips)"},
+        {"symbol": "JPM", "weight": 10, "what": "JPMorgan Chase (banking)"},
+        {"symbol": "JNJ", "weight": 10, "what": "Johnson & Johnson (health care)"},
+        {"symbol": "PG", "weight": 10, "what": "Procter & Gamble (household goods)"},
+        {"symbol": "KO", "weight": 10, "what": "Coca-Cola (drinks)"},
+        {"symbol": "XOM", "weight": 10, "what": "ExxonMobil (energy)"},
+        {"symbol": "WMT", "weight": 10, "what": "Walmart (retail)"}
       ]
     },
     {
