@@ -1,8 +1,224 @@
 {% extends "base.html" %}
 {% block title %}Learn{% endblock %}
+{% block head %}
+<style>
+  .learn-layout { display: grid; grid-template-columns: 14rem 1fr; gap: 1.5rem; align-items: start; }
+  .toc { position: sticky; top: 1rem; font-size: .95rem; }
+  .toc h2 { font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: .4rem; }
+  .toc ol { margin: 0; padding-left: 1.3rem; }
+  .toc li { margin: .15rem 0; }
+  .toc a { text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .lesson h2 { margin-bottom: .4rem; }
+  .lesson p { margin: 0 0 .6rem; max-width: 44rem; }
+  .lesson .takeaway { margin: .8rem 0 0; padding: .5rem .8rem; background: var(--bg); border-radius: 6px; }
+  .lesson .try { margin: .6rem 0 0; font-size: .95rem; }
+  .disclaimer { font-size: .95rem; }
+  .lab-callout { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .lab-callout p { margin: 0; flex: 1; min-width: 16rem; }
+  .glossary-filter { width: 100%; max-width: 22rem; margin-bottom: 1rem; }
+  .glossary dl { margin: 0; display: grid; grid-template-columns: 12rem 1fr; }
+  .glossary dt, .glossary dd { padding: .45rem 0; border-bottom: 1px dotted var(--border); margin: 0; }
+  .glossary dt { font-weight: 600; padding-right: 1rem; }
+  .glossary dt[hidden], .glossary dd[hidden] { display: none; }
+  @media (max-width: 800px) {
+    .learn-layout { grid-template-columns: 1fr; }
+    .toc { position: static; }
+    .glossary dl { grid-template-columns: 1fr; }
+    .glossary dt { border-bottom: none; padding-bottom: 0; }
+  }
+</style>
+{% endblock %}
 {% block content %}
-<h1>Learn</h1>
-<section class="card placeholder" data-stub="learn">
-  <p class="muted">Coming soon: short lessons, a glossary and a strategy lab.</p>
-</section>
+<div class="hero">
+  <h1>Learn the basics</h1>
+  <p class="lead">Short lessons on the ideas behind investing, in plain words. Each takes a minute or two.
+    When a lesson mentions something you can see for yourself, there is a link to try it with pretend money.</p>
+</div>
+
+<div class="card notice disclaimer" role="note" id="disclaimer">
+  <strong>Not financial advice.</strong> This app is for learning and practice only. Nothing here is a
+  recommendation to buy or sell anything, past results do not predict future ones, and real investing
+  carries real risk. For decisions about your own money, talk to a qualified, independent adviser.
+</div>
+
+<div class="card lab-callout">
+  <p><strong>Strategy lab:</strong> see what investing all at once, a bit each month, or with rebalancing
+    would have done with $10,000 over real past markets, side by side.</p>
+  <a class="btn" href="{{ url_for('learn.lab') }}">Open the strategy lab</a>
+</div>
+
+<div class="learn-layout">
+  <nav class="toc card" aria-label="Lessons">
+    <h2>Lessons</h2>
+    <ol>
+      <li><a href="#stocks">Stocks</a></li>
+      <li><a href="#bonds">Bonds</a></li>
+      <li><a href="#funds">Funds and ETFs</a></li>
+      <li><a href="#diversification">Diversification</a></li>
+      <li><a href="#fees">Fees</a></li>
+      <li><a href="#volatility">Volatility and drawdown</a></li>
+      <li><a href="#time-in-market">Time in the market</a></li>
+      <li><a href="#dca">Dollar-cost averaging</a></li>
+      <li><a href="#rebalancing">Rebalancing</a></li>
+      <li><a href="#glossary">Glossary</a></li>
+    </ol>
+  </nav>
+
+  <div class="lessons">
+    <section class="card lesson" id="stocks" aria-labelledby="stocks-h">
+      <h2 id="stocks-h">1. Stocks</h2>
+      <p>A stock (or share) is a small piece of ownership in a company. If the company grows and earns
+        more, its shares tend to become worth more, and some companies also pay part of their profits
+        to shareholders as <em>dividends</em>.</p>
+      <p>The price of a stock moves every day as buyers and sellers change their minds about the
+        company's future. A single company can do badly or even fail, so one stock on its own can lose
+        most or all of its value.</p>
+      <p class="takeaway">Stocks have grown more than most other investments over long periods, but they
+        are also the bumpiest ride.</p>
+    </section>
+
+    <section class="card lesson" id="bonds" aria-labelledby="bonds-h">
+      <h2 id="bonds-h">2. Bonds</h2>
+      <p>A bond is a loan. You lend money to a government or company; they pay you interest and give the
+        money back on a set date. Because the payments are agreed in advance, bonds usually move much
+        less than stocks.</p>
+      <p>Bonds are not risk-free. When interest rates rise, older bonds paying less become worth less,
+        which is what happened in 2022. A borrower can also fail to pay.</p>
+      <p class="takeaway">Bonds usually grow more slowly than stocks, and they often hold up better when
+        stocks fall, which is why many portfolios mix the two.</p>
+    </section>
+
+    <section class="card lesson" id="funds" aria-labelledby="funds-h">
+      <h2 id="funds-h">3. Funds and ETFs</h2>
+      <p>A fund pools money from many people and buys many investments at once. One fund can hold
+        hundreds or thousands of stocks or bonds, so buying one share of it spreads your money widely.</p>
+      <p>An <em>index fund</em> simply buys everything in a list such as the S&amp;P 500 (500 large US
+        companies), rather than paying someone to pick winners. An <em>ETF</em> (exchange-traded fund)
+        is a fund you buy and sell during the day like a stock; a <em>mutual fund</em> is priced once a
+        day. SPY and VOO are ETFs; VTSAX is a mutual fund. Many hold nearly the same things.</p>
+      <p class="takeaway">For most beginners, a few broad, low-cost index funds do the job of hundreds of
+        individual picks.</p>
+      <p class="try">Try it: <a href="{{ url_for('examples.index') }}">see example portfolios built from funds</a>.</p>
+    </section>
+
+    <section class="card lesson" id="diversification" aria-labelledby="diversification-h">
+      <h2 id="diversification-h">4. Diversification</h2>
+      <p>Diversification means not putting all your eggs in one basket. If you own many different
+        investments, one of them collapsing hurts a little instead of a lot.</p>
+      <p>It works best when the things you own don't all move together: large and small companies, US
+        and other countries, stocks and bonds. Owning ten tech companies is less diverse than it looks,
+        because they tend to rise and fall together.</p>
+      <p class="takeaway">Diversifying won't stop the whole market from falling, but it greatly lowers the
+        chance that one bad pick sinks you.</p>
+    </section>
+
+    <section class="card lesson" id="fees" aria-labelledby="fees-h">
+      <h2 id="fees-h">5. Fees</h2>
+      <p>Funds charge a yearly fee called the <em>expense ratio</em>, taken out of your money quietly. It
+        looks tiny, but it is taken every year, on everything you have, for as long as you hold it.</p>
+      <p>Over 30 years, $10,000 growing at 7% a year becomes about $76,000. With a 1% yearly fee it grows
+        at 6% instead and becomes about $57,000: the fee costs about a quarter of the result. A 0.05% fee
+        costs about $1,000.</p>
+      <p class="takeaway">Fees are one of the few things you control. Lower is almost always better.</p>
+    </section>
+
+    <section class="card lesson" id="volatility" aria-labelledby="volatility-h">
+      <h2 id="volatility-h">6. Volatility and drawdown</h2>
+      <p><em>Volatility</em> is how much a price jumps around. A volatility of 15% a year means that in
+        a typical year the value swings roughly 15% above or below its trend.</p>
+      <p><em>Drawdown</em> is the fall from a high point to the low that follows. In 2008–2009 the
+        S&amp;P 500 fell about 55% from its peak and took over four years to get back. The question
+        drawdown asks is: could you watch half your money vanish on paper and not sell?</p>
+      <p class="takeaway">Higher growth usually comes with bigger drops. Choose a mix whose worst drop you
+        could live through without panicking.</p>
+      <p class="try">Try it: <a href="{{ url_for('learn.lab', range='2008') }}">run the 2008 crash in the strategy lab</a>.</p>
+    </section>
+
+    <section class="card lesson" id="time-in-market" aria-labelledby="time-in-market-h">
+      <h2 id="time-in-market-h">7. Time in the market</h2>
+      <p>Nobody reliably knows when the market will rise or fall. Many of the best days come right after
+        the worst ones, so people who sell in a panic and wait for things to "settle down" often miss the
+        recovery.</p>
+      <p>Over a single year, stocks lose money fairly often. Over 15 or 20 years, a broad stock fund has
+        historically almost always ended higher. Time smooths out the bumps, though it can't promise
+        anything.</p>
+      <p class="takeaway">"Time in the market beats timing the market": staying invested has usually
+        mattered more than when you got in.</p>
+      <p class="try">Try it: <a href="{{ url_for('history.index') }}">see how a portfolio did over different stretches</a>.</p>
+    </section>
+
+    <section class="card lesson" id="dca" aria-labelledby="dca-h">
+      <h2 id="dca-h">8. Dollar-cost averaging</h2>
+      <p>Dollar-cost averaging (DCA) means investing a fixed amount on a schedule, say every month,
+        whatever the price. When prices are low your money buys more; when they are high it buys less.
+        Saving from each paycheck is DCA by nature.</p>
+      <p>If you already have a lump of money, the question is whether to invest it all now or spread it
+        out. Because markets rise more often than they fall, investing all at once has won roughly two
+        times out of three historically. Spreading it out wins when a fall comes soon after you start,
+        and it can make it easier to begin.</p>
+      <p class="takeaway">DCA is a good habit for new savings. For money you already have, it trades some
+        expected growth for less regret if a crash comes right away.</p>
+      <p class="try">Try it: <a href="{{ url_for('learn.lab') }}">compare all at once with spreading it out</a>.</p>
+    </section>
+
+    <section class="card lesson" id="rebalancing" aria-labelledby="rebalancing-h">
+      <h2 id="rebalancing-h">9. Rebalancing</h2>
+      <p>Say you choose 60% stocks and 40% bonds. After a few good years for stocks you might have 75%
+        stocks without doing anything: the portfolio has become riskier than you chose. Rebalancing means
+        selling some of what grew and buying what lagged, to get back to 60/40.</p>
+      <p>People usually rebalance once a year, or when the mix drifts more than a few percent. It makes
+        you sell a little high and buy a little low, but its main job is to keep your risk where you set
+        it, not to raise returns.</p>
+      <p class="takeaway">Pick a mix you're comfortable with, then rebalance now and then to keep it.</p>
+      <p class="try">Try it: <a href="{{ url_for('learn.lab', period='yearly') }}">see rebalancing in the strategy lab</a>.</p>
+    </section>
+
+    <section class="card glossary" id="glossary" aria-labelledby="glossary-h">
+      <h2 id="glossary-h">Glossary</h2>
+      <label for="glossary-filter" class="hint">Find a term</label>
+      <input type="search" id="glossary-filter" class="glossary-filter" placeholder="Type to filter, e.g. fund"
+             autocomplete="off">
+      <p class="hint" id="glossary-none" hidden>No terms match.</p>
+      <dl>
+      {% for term, meaning in [
+        ("Adjusted close", "A day's closing price, adjusted so that dividends and splits count as if reinvested. This app uses it for all growth figures."),
+        ("Asset allocation", "How your money is split between kinds of investment, such as 60% stocks and 40% bonds."),
+        ("Bear market", "A fall of 20% or more from a recent high."),
+        ("Benchmark", "Something to compare against, often the S&P 500, to judge whether a portfolio did well."),
+        ("Bond", "A loan to a government or company that pays interest and is repaid on a set date."),
+        ("Bull market", "A long stretch of rising prices."),
+        ("CAGR", "Compound annual growth rate: the steady yearly growth that would turn the starting amount into the ending amount."),
+        ("Compounding", "Growth on top of earlier growth. Gains earn gains of their own, which is why time matters so much."),
+        ("Diversification", "Spreading money over many different investments so that no single one can do much harm."),
+        ("Dividend", "Part of a company's profit paid out to shareholders, usually every quarter."),
+        ("Dollar-cost averaging (DCA)", "Investing a fixed amount on a regular schedule, whatever the price."),
+        ("Drawdown", "The fall from a high point to the low that follows, as a percentage."),
+        ("ETF", "Exchange-traded fund: a fund that trades during the day like a stock."),
+        ("Expense ratio", "A fund's yearly fee, as a percentage of the money you have in it."),
+        ("Index", "A list of investments that stands for a market, such as the S&P 500."),
+        ("Index fund", "A fund that buys everything in an index instead of picking."),
+        ("Lump sum", "Investing all of a sum of money at once."),
+        ("Mutual fund", "A fund priced once a day, after the market closes."),
+        ("Portfolio", "Everything you have invested, taken together."),
+        ("Rebalancing", "Selling some of what grew and buying what lagged to get back to the mix you chose."),
+        ("REIT", "Real estate investment trust: a company that owns property and pays out most of the rent as dividends."),
+        ("Return", "How much an investment gained or lost, as a percentage of what was put in."),
+        ("S&P 500", "An index of about 500 large US companies, often used to mean \"the market\"."),
+        ("Share", "One unit of ownership in a company or fund."),
+        ("Stock", "Part ownership of a company."),
+        ("Ticker symbol", "The short code for an investment, such as SPY or AAPL."),
+        ("Volatility", "How much a price jumps around, usually given as a yearly percentage."),
+      ] %}
+        <dt data-term>{{ term }}</dt>
+        <dd>{{ meaning }}</dd>
+      {% endfor %}
+      </dl>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/learn.js') }}"></script>
 {% endblock %}
