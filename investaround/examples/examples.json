@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "examples": [
+    {
+      "id": "sp500",
+      "name": "S&P 500 only",
+      "tagline": "One fund that owns America's 500 biggest companies.",
+      "idea": "Instead of picking winners, buy the whole market of large US companies in a single low-cost index fund. Many professional fund managers fail to beat this over long periods, which is why it is a popular starting point.",
+      "risks": "Everything is in US stocks, so when the US market falls you feel all of it: about -50% in 2008-09 and -34% in early 2020. It holds no bonds or foreign companies, and a few giant tech firms now make up a big share of the index.",
+      "holdings": [
+        {"symbol": "VOO", "weight": 100, "what": "S&P 500 index fund"}
+      ]
+    },
+    {
+      "id": "three-fund",
+      "name": "Three-fund portfolio",
+      "tagline": "US stocks, world stocks and bonds: the whole market in three funds.",
+      "idea": "A classic do-it-yourself mix: a fund for the entire US stock market, one for stocks in the rest of the world, and one for bonds. It is cheap, very spread out, and easy to keep balanced by nudging the three back to their targets once a year.",
+      "risks": "Still mostly stocks, so it can drop hard in a crash (around -30% to -40%). Foreign stocks have lagged US stocks over the last decade or more, and bonds lost money in 2022 when interest rates rose fast.",
+      "holdings": [
+        {"symbol": "VTI", "weight": 50, "what": "Total US stock market"},
+        {"symbol": "VXUS", "weight": 30, "what": "Stocks outside the US"},
+        {"symbol": "BND", "weight": 20, "what": "Total US bond market"}
+      ]
+    },
+    {
+      "id": "sixty-forty",
+      "name": "60/40 stocks and bonds",
+      "tagline": "The traditional balanced portfolio: 60% stocks, 40% bonds.",
+      "idea": "Stocks grow over time; bonds pay steady interest and usually fall less, often rising when stocks crash. Mixing them gives a smoother ride than stocks alone, at the cost of some growth. Pension funds used this mix for decades.",
+      "risks": "Grows more slowly than all-stocks in good years. Bonds don't always protect you: in 2022 stocks and bonds fell together and a 60/40 portfolio lost about 16%. Inflation eats into bond returns.",
+      "holdings": [
+        {"symbol": "VTI", "weight": 60, "what": "Total US stock market"},
+        {"symbol": "BND", "weight": 40, "what": "Total US bond market"}
+      ]
+    },
+    {
+      "id": "all-weather",
+      "name": "All-weather style",
+      "tagline": "Built to hold up in any economy, not to win in the best one.",
+      "idea": "A simplified take on an idea made famous by the hedge fund Bridgewater: hold assets that each do well in a different kind of economy. Stocks for growth, a lot of bonds for slowdowns, and gold for inflation or panic. The aim is small drops rather than big gains.",
+      "risks": "With most of the money in bonds it grows slowly, and it had a bad 2022 when bonds fell. Gold can go years without gaining. The real version also uses long-term bonds and commodities, which this simple copy leaves out.",
+      "holdings": [
+        {"symbol": "VTI", "weight": 30, "what": "Total US stock market"},
+        {"symbol": "BND", "weight": 55, "what": "Total US bond market"},
+        {"symbol": "GLD", "weight": 15, "what": "Gold"}
+      ]
+    },
+    {
+      "id": "dividend-payers",
+      "name": "Dividend payers",
+      "tagline": "Steady companies that pay you cash every few months.",
+      "idea": "Some mature companies share their profits as regular cash payments called dividends. Owners like the income and the feeling of being paid to wait. This example mixes long-time dividend raisers with real-estate trusts (REITs), which must pay out most of their income.",
+      "risks": "Only a few companies, so one bad year at any of them hurts. A dividend is not guaranteed: companies cut them when times are hard. Dividend stocks often trail the market when fast growers lead, and REITs are hit by rising interest rates.",
+      "holdings": [
+        {"symbol": "JNJ", "weight": 30, "what": "Johnson & Johnson (health care)"},
+        {"symbol": "KO", "weight": 30, "what": "Coca-Cola (drinks)"},
+        {"symbol": "MSFT", "weight": 20, "what": "Microsoft (software)"},
+        {"symbol": "VNQ", "weight": 20, "what": "Real-estate trusts (REITs)"}
+      ]
+    },
+    {
+      "id": "tech-growth",
+      "name": "Tech and growth heavy",
+      "tagline": "A big bet on the companies building the future.",
+      "idea": "Put most of the money into fast-growing technology companies: a Nasdaq-100 fund plus a few of the largest tech names. When tech leads the market, as it has for much of the last 15 years, this can grow much faster than the market as a whole.",
+      "risks": "Very concentrated in one industry. Tech can fall much further than the market: the Nasdaq lost about 80% from 2000 to 2002 and about a third in 2022. Single stocks like NVIDIA have dropped more than 50% several times.",
+      "holdings": [
+        {"symbol": "QQQ", "weight": 40, "what": "Nasdaq-100 fund (big tech)"},
+        {"symbol": "NVDA", "weight": 15, "what": "NVIDIA (chips)"},
+        {"symbol": "MSFT", "weight": 15, "what": "Microsoft (software)"},
+        {"symbol": "AAPL", "weight": 15, "what": "Apple (devices)"},
+        {"symbol": "AMZN", "weight": 15, "what": "Amazon (online shopping, cloud)"}
+      ]
+    },
+    {
+      "id": "blue-chips",
+      "name": "Six blue-chip stocks",
+      "tagline": "Pick a handful of famous, well-established companies yourself.",
+      "idea": "Rather than a fund, own shares of a few large companies you know, spread across different industries: technology, online shopping, health care and drinks. It is a good way to learn how single stocks move compared with funds.",
+      "risks": "Six companies is not much spreading: if one stumbles it moves the whole portfolio. Famous companies can still fall a long way or fall behind for years. You also have to keep an eye on each one, which a fund does for you.",
+      "holdings": [
+        {"symbol": "AAPL", "weight": 17, "what": "Apple (devices)"},
+        {"symbol": "MSFT", "weight": 17, "what": "Microsoft (software)"},
+        {"symbol": "AMZN", "weight": 17, "what": "Amazon (online shopping, cloud)"},
+        {"symbol": "JNJ", "weight": 17, "what": "Johnson & Johnson (health care)"},
+        {"symbol": "NVDA", "weight": 16, "what": "NVIDIA (chips)"},
+        {"symbol": "KO", "weight": 16, "what": "Coca-Cola (drinks)"}
+      ]
+    },
+    {
+      "id": "gold-reit",
+      "name": "Gold and real-estate diversifier",
+      "tagline": "A stock-and-bond core with gold and property on the side.",
+      "idea": "Add things that don't always move with stocks. Gold often holds up in scares and inflation; real-estate trusts (REITs) own buildings and pay rent-based income. A slice of each can soften the dips of a mostly-stock portfolio.",
+      "risks": "Gold pays no income and can go nowhere for a decade. REITs can fall as much as stocks in a crash (VNQ lost about two thirds in 2008-09) and suffer when interest rates rise. Diversifiers lower the bumps only some of the time.",
+      "holdings": [
+        {"symbol": "VTI", "weight": 50, "what": "Total US stock market"},
+        {"symbol": "BND", "weight": 20, "what": "Total US bond market"},
+        {"symbol": "VNQ", "weight": 15, "what": "Real-estate trusts (REITs)"},
+        {"symbol": "GLD", "weight": 15, "what": "Gold"}
+      ]
+    }
+  ]
+}

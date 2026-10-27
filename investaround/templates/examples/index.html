@@ -1,8 +1,130 @@
 {% extends "base.html" %}
 {% block title %}Examples{% endblock %}
+{% block head %}
+<style>
+  .examples-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
+  .example-card { display: flex; flex-direction: column; margin-bottom: 0; }
+  .example-card h2 { margin-bottom: .2rem; }
+  .example-card .tagline { margin: 0 0 .75rem; color: var(--muted); }
+  .example-card h3 { font-size: .9rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: .9rem 0 .25rem; }
+  .example-card p { margin: 0; }
+  .growth-line { margin: .4rem 0 0; font-size: .95rem; }
+  .growth-line strong { font-size: 1.05rem; }
+  .chart-legend { font-size: .8rem; color: var(--muted); margin-top: .2rem; }
+  .swatch { display: inline-block; width: 1.4em; height: 0; vertical-align: middle; margin-right: .25em; border-top: 3px solid var(--accent); }
+  .swatch.bench { border-top: 2px dashed #9aa3b5; }
+  .holdings { list-style: none; padding: 0; margin: 0; }
+  .holdings li { display: flex; gap: .5rem; align-items: baseline; padding: .15rem 0; border-bottom: 1px dotted var(--border); }
+  .holdings li:last-child { border-bottom: none; }
+  .holdings .sym { font-family: var(--mono); font-weight: 600; min-width: 3.6em; }
+  .holdings .what { flex: 1; color: var(--muted); font-size: .92rem; }
+  .card-actions { margin-top: auto; padding-top: 1rem; display: flex; gap: .5rem; flex-wrap: wrap; }
+  .card-actions form { margin: 0; }
+  .no-chart { height: 120px; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: 6px; }
+</style>
+{% endblock %}
 {% block content %}
-<h1>Example portfolios</h1>
-<section class="card placeholder" data-stub="examples">
-  <p class="muted">Coming soon: well-known portfolio ideas, explained in plain words, ready to try.</p>
-</section>
+<div class="hero">
+  <h1>Example portfolios</h1>
+  <p class="lead">Well-known ways to invest, explained in plain words. Each chart shows what
+    ${{ '{:,.0f}'.format(start_cash) }} put in {{ chart_years }} years ago and left alone would be worth now,
+    next to the {{ benchmark_name }}. Copy one to try it with pretend money, then change it to make it yours.</p>
+  <p class="hint">The past does not predict the future: these show how an idea behaved, not what it will do next.</p>
+</div>
+
+{% if added %}
+<div class="card notice" role="status" id="added-notice">
+  Added <strong>{{ added.name }}</strong> to your portfolios.
+  <a href="{{ url_for('portfolios.index') }}">Go to My portfolios</a>
+</div>
+{% endif %}
+
+<div class="examples-grid">
+{% for card in cards %}
+  {% set ex = card.example %}
+  {% set g = card.growth %}
+  <article class="card example-card" id="example-{{ ex.id }}" aria-labelledby="example-{{ ex.id }}-name">
+    <h2 id="example-{{ ex.id }}-name">{{ ex.name }}</h2>
+    <p class="tagline">{{ ex.tagline }}</p>
+
+    {% if g %}
+      <div class="chart-box small"><canvas data-example="{{ ex.id }}"
+           aria-label="Growth of ${{ '{:,.0f}'.format(start_cash) }} in {{ ex.name }} since {{ g.start.strftime('%b %Y') }}"></canvas></div>
+      <p class="chart-legend"><span class="swatch"></span>This example
+        {% if benchmark %}&nbsp; <span class="swatch bench"></span>{{ benchmark_name }}{% endif %}</p>
+      <p class="growth-line">
+        ${{ '{:,.0f}'.format(start_cash) }} in {{ g.start.strftime('%b %Y') }} &rarr;
+        <strong class="{{ 'up' if g.final >= start_cash else 'down' }}" data-final>${{ '{:,.0f}'.format(g.final) }}</strong>
+        {% if benchmark %}<span class="muted">({{ benchmark_name }}: ${{ '{:,.0f}'.format(benchmark.final) }})</span>{% endif %}
+      </p>
+      <p class="growth-line">Worst drop along the way:
+        <strong class="down" data-drawdown>{{ '{:.0f}'.format(g.max_drawdown_pct) }}%</strong>
+        <span class="tip" tabindex="0" data-tip="The biggest fall from a high point before it recovered. It shows how much nerve it took to hold on.">?</span>
+      </p>
+    {% else %}
+      <div class="no-chart muted">Price history is unavailable right now.</div>
+    {% endif %}
+
+    <h3>What's in it</h3>
+    <ul class="holdings">
+      {% for h in ex.holdings %}
+      <li><span class="sym">{{ h.symbol }}</span><span class="what">{{ h.what }}</span><span class="num">{{ '{:g}'.format(h.weight) }}%</span></li>
+      {% endfor %}
+    </ul>
+
+    <h3>The idea</h3>
+    <p>{{ ex.idea }}</p>
+    <h3>The risks</h3>
+    <p>{{ ex.risks }}</p>
+
+    <div class="card-actions">
+      <form method="post" action="{{ url_for('examples.try_example', example_id=ex.id) }}">
+        <button class="btn" type="submit">Try it as my portfolio</button>
+      </form>
+      <a class="btn btn-secondary" href="{{ url_for('history.index', example=ex.id) }}">See how it would have done</a>
+    </div>
+  </article>
+{% endfor %}
+</div>
+
+<script type="application/json" id="examples-chart-data">{{ chart_data | tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const data = JSON.parse(document.getElementById("examples-chart-data").textContent);
+  const css = getComputedStyle(document.documentElement);
+  const accent = css.getPropertyValue("--accent").trim() || "#2f6fde";
+  const money = new Intl.NumberFormat("en-US", {style: "currency", currency: "USD", maximumFractionDigits: 0});
+  document.querySelectorAll("canvas[data-example]").forEach(function (canvas) {
+    const d = data[canvas.dataset.example];
+    if (!d) return;
+    new Chart(canvas, {
+      type: "line",
+      data: {
+        labels: d.months,
+        datasets: [
+          {label: "This example", data: d.values, borderColor: accent, borderWidth: 2, pointRadius: 0, tension: .2},
+          {label: "{{ benchmark_name }}", data: d.benchmark, borderColor: "#9aa3b5", borderWidth: 1.5,
+           borderDash: [4, 3], pointRadius: 0, tension: .2},
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        interaction: {mode: "index", intersect: false},
+        plugins: {
+          legend: {display: false},
+          tooltip: {callbacks: {label: (ctx) => ctx.dataset.label + ": " + money.format(ctx.parsed.y)}},
+        },
+        scales: {
+          x: {ticks: {maxTicksLimit: 5, maxRotation: 0, callback: function (v) { return this.getLabelForValue(v).slice(0, 4); }},
+              grid: {display: false}},
+          y: {ticks: {maxTicksLimit: 4, callback: (v) => money.format(v)}, grid: {color: "#eef0f5"}},
+        },
+      },
+    });
+  });
+})();
+</script>
 {% endblock %}
