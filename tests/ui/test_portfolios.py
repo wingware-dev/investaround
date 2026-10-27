@@ -124,6 +124,8 @@ def test_watch_shows_values_since_start(page, live_app):
     # 6000 * 680.00 / 655.462873 (SPY's Sep 30 close)
     expect(spy).to_contain_text("$6,224.61")
     expect(spy).to_contain_text("+$224.61")
+    expect(spy).to_contain_text("bought at $655.46")
+    expect(spy).to_contain_text("9.15 shares")
     gain = page.locator('[data-stat="gain"]')
     expect(gain).to_have_class(re.compile(r"\bup\b"))
     assert live_app.store.get(p.id).created == dt.date(2026, 10, 1)

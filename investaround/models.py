@@ -36,11 +36,17 @@ class Holding:
 
     Exactly one of ``weight`` (percent of start cash, 0-100] or ``shares``
     (fixed share count) is set.
+
+    ``start_price`` and ``start_date`` record the closing price the holding
+    was "bought" at, set together when a portfolio is saved.  Portfolios
+    saved before they existed have neither.
     """
 
     symbol: str
     weight: float | None = None
     shares: float | None = None
+    start_price: float | None = None
+    start_date: dt.date | None = None
 
     def __post_init__(self) -> None:
         self.symbol = normalize_symbol(self.symbol)
@@ -54,6 +60,17 @@ class Holding:
             self.shares = float(self.shares)
             if self.shares <= 0:
                 raise ValidationError(f"{self.symbol}: share count must be above 0")
+        if (self.start_price is None) != (self.start_date is None):
+            raise ValidationError(f"{self.symbol}: give both a start price and a start date, or neither")
+        if self.start_price is not None:
+            self.start_price = float(self.start_price)
+            if self.start_price <= 0:
+                raise ValidationError(f"{self.symbol}: start price must be above 0")
+
+    @property
+    def position(self) -> tuple:
+        """What the user chose (symbol and amount), ignoring the recorded start."""
+        return (self.symbol, self.weight, self.shares)
 
     def to_dict(self) -> dict:
         d: dict = {"symbol": self.symbol}
@@ -61,11 +78,16 @@ class Holding:
             d["weight"] = self.weight
         if self.shares is not None:
             d["shares"] = self.shares
+        if self.start_price is not None:
+            d["start_price"] = self.start_price
+            d["start_date"] = self.start_date.isoformat()
         return d
 
     @classmethod
     def from_dict(cls, d: dict) -> Holding:
-        return cls(symbol=d["symbol"], weight=d.get("weight"), shares=d.get("shares"))
+        start = d.get("start_date")
+        return cls(symbol=d["symbol"], weight=d.get("weight"), shares=d.get("shares"),
+                   start_price=d.get("start_price"), start_date=dt.date.fromisoformat(start) if start else None)
 
 
 @dataclass

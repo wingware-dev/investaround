@@ -9,7 +9,8 @@ from investaround.app import create_app
 from investaround.models import Holding, Portfolio
 from investaround.prices.base import PriceSourceError
 from investaround.prices.fake import FakePriceSource
-from investaround.web.portfolios import money, parse_form, pct, start_bar, value_portfolio
+from investaround.web.portfolios import (money, parse_form, pct, record_start_prices, start_bar,
+                                         value_portfolio)
 
 
 @pytest.fixture(scope="module")
@@ -226,3 +227,82 @@ def test_api_search_unavailable(tmp_path):
     resp = app.test_client().get("/api/search?q=spy")
     assert resp.status_code == 503
     assert "rate limited" in resp.get_json()["error"]
+
+
+# ------------------------------------------------------------ recorded start prices
+
+SEP30 = dt.date(2026, 9, 30)
+
+
+class NoHistory(FakePriceSource):
+    def history(self, symbol, start=None, end=None):
+        raise PriceSourceError("history down")
+
+
+def test_record_start_prices(prices):
+    p = Portfolio("Mix", [Holding("SPY", weight=60), Holding("BND", weight=40)], created=dt.date(2026, 10, 1))
+    assert record_start_prices(p, prices)
+    spy = p.holdings[0]
+    assert (spy.start_price, spy.start_date) == (pytest.approx(655.462873), SEP30)
+    assert not record_start_prices(p, prices)  # already recorded
+
+
+def test_record_start_prices_past_the_data_uses_quote(prices):
+    created = prices.today + dt.timedelta(days=30)
+    p = Portfolio("Later", [Holding("SPY", weight=100)], created=created)
+    record_start_prices(p, prices)
+    assert (p.holdings[0].start_price, p.holdings[0].start_date) == (680.0, created)
+
+
+def test_record_start_prices_leaves_holding_without_on_error():
+    p = Portfolio("Down", [Holding("SPY", weight=100)], created=dt.date(2026, 10, 1))
+    assert not record_start_prices(p, NoHistory())
+    assert p.holdings[0].start_price is None
+
+
+def test_value_refetches_start_day_bar(prices):
+    # A recorded price from before a split (here: nonsense) is overridden by
+    # the start day's bar as the source knows it now.
+    h = Holding("SPY", weight=100, start_price=1.0, start_date=SEP30)
+    pv = value_portfolio(Portfolio("P", [h], created=dt.date(2026, 10, 1)), prices)
+    row = pv.rows[0]
+    assert row.value == pytest.approx(10000 * 680.0 / _adj(prices, "SPY", SEP30))
+    assert row.start_price == pytest.approx(655.462873)
+    assert row.shares_held == pytest.approx(10000 / 655.462873)
+
+
+def test_value_uses_recorded_price_without_history():
+    h = Holding("SPY", weight=100, start_price=700.0, start_date=SEP30)
+    pv = value_portfolio(Portfolio("P", [h], created=dt.date(2026, 10, 1)), NoHistory())
+    assert pv.rows[0].start_date == SEP30
+    assert pv.value == pytest.approx(10000 * 680.0 / 700)
+
+
+def test_create_records_start_prices(client, app, prices):
+    _create(client)
+    (p,) = app.extensions["investaround.store"].list()
+    expected = start_bar(prices, "SPY", dt.date.today())
+    assert (p.holdings[0].start_price, p.holdings[0].start_date) == (expected.close, expected.date)
+
+
+def test_edit_keeps_or_restarts_start_prices(client, app):
+    store = app.extensions["investaround.store"]
+    p = _seed(app)
+    record_start_prices(p, FakePriceSource())
+    store.update(p)
+    form = [("name", "Renamed"), ("symbol", "SPY"), ("weight", "60"), ("symbol", "BND"), ("weight", "40")]
+    client.post(f"/portfolios/{p.id}/edit", data=MultiDict(form))
+    assert [h.start_date for h in store.get(p.id).holdings] == [SEP30, SEP30]
+    client.post(f"/portfolios/{p.id}/edit", data=MultiDict([("name", "Renamed"), ("symbol", "SPY"), ("weight", "100")]))
+    (spy,) = store.get(p.id).holdings
+    assert spy.start_date == start_bar(FakePriceSource(), "SPY", dt.date.today()).date
+
+
+def test_watch_records_missing_start_prices(client, app):
+    p = _seed(app)  # saved without start prices, as before they were recorded
+    assert client.get(f"/portfolios/{p.id}/").status_code == 200
+    q = app.extensions["investaround.store"].get(p.id)
+    assert [h.start_date for h in q.holdings] == [SEP30, SEP30]
+    assert q.created == dt.date(2026, 10, 1)
+    body = client.get(f"/portfolios/{p.id}/").get_data(as_text=True)
+    assert "bought at $655.46" in body

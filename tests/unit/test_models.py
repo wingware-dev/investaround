@@ -40,8 +40,24 @@ class TestHolding:
             Holding("SPY", shares=0)
 
     def test_round_trip(self):
-        for h in (Holding("spy", weight=60), Holding("BND", shares=12.5)):
+        for h in (Holding("spy", weight=60), Holding("BND", shares=12.5),
+                  Holding("SPY", weight=60, start_price=655.46, start_date=dt.date(2026, 9, 30))):
             assert Holding.from_dict(h.to_dict()) == h
+
+    def test_start_price_and_date(self):
+        h = Holding("SPY", weight=60, start_price="655.46", start_date=dt.date(2026, 9, 30))
+        assert h.start_price == 655.46
+        assert h.to_dict() == {"symbol": "SPY", "weight": 60.0, "start_price": 655.46, "start_date": "2026-09-30"}
+        assert "start_price" not in Holding("SPY", weight=60).to_dict()
+        assert h.position == Holding("SPY", weight=60).position == ("SPY", 60.0, None)
+
+    def test_start_price_needs_date_and_must_be_positive(self):
+        with pytest.raises(ValidationError):
+            Holding("SPY", weight=60, start_price=10)
+        with pytest.raises(ValidationError):
+            Holding("SPY", weight=60, start_date=dt.date(2026, 9, 30))
+        with pytest.raises(ValidationError):
+            Holding("SPY", weight=60, start_price=0, start_date=dt.date(2026, 9, 30))
 
 
 class TestPortfolio:

@@ -42,8 +42,10 @@
       {% for r in pv.rows %}
         <tr data-symbol="{{ r.symbol }}">
           <td><strong>{{ r.symbol }}</strong><div class="muted small">{{ r.name or r.problem or "" }}</div></td>
-          <td class="num">{{ (weight_text(r.weight) ~ "%") if r.weight is not none else ("%g shares"|format(r.shares)) }}</td>
-          <td class="num">{{ money(r.price) }}</td>
+          <td class="num">{{ (weight_text(r.weight) ~ "%") if r.weight is not none else ("%g shares"|format(r.shares)) }}
+            {%- if r.weight is not none and r.shares_held %}<div class="small muted">{{ "{:,.2f}".format(r.shares_held) }} shares</div>{% endif %}</td>
+          <td class="num">{{ money(r.price) }}
+            {%- if r.start_price %}<div class="small muted">bought at {{ money(r.start_price) }}</div>{% endif %}</td>
           <td class="num {{ direction(r.change) }}">{{ money(r.change, signed=True) }}<div class="small">{{ pct(r.change_pct) }}</div></td>
           <td class="num">{{ money(r.value) }}<div class="small muted">{{ money(r.day_change, signed=True) }} today</div></td>
           <td class="num {{ direction(r.gain) }}">{{ money(r.gain, signed=True) }}<div class="small">{{ pct(r.gain_pct) }}</div></td>

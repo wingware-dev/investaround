@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 
 import pytest
@@ -28,6 +29,22 @@ def test_add_get_list(store):
     assert [x.id for x in store.list()] == [p.id]
     # Persisted and readable by a fresh store
     assert PortfolioStore(store.path).get(p.id) == p
+
+
+def test_loads_holdings_saved_without_start_prices(store):
+    store.path.parent.mkdir(parents=True)
+    store.path.write_text(json.dumps({"version": 1, "portfolios": [{
+        "id": "old1", "name": "Old", "created": "2026-10-01",
+        "holdings": [{"symbol": "SPY", "weight": 60}, {"symbol": "BND", "weight": 40}],
+    }]}))
+    (p,) = store.list()
+    assert [(h.start_price, h.start_date) for h in p.holdings] == [(None, None), (None, None)]
+
+
+def test_start_prices_persist(store):
+    p =Portfolio("New", [Holding("SPY", weight=100, start_price=655.46, start_date=dt.date(2026, 9, 30))])
+    store.add(p)
+    assert PortfolioStore(store.path).get(p.id).holdings[0].start_price == 655.46
 
 
 def test_add_validates_and_writes_nothing(store):

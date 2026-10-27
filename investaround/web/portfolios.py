@@ -4,8 +4,11 @@ Each portfolio starts with ``start_cash`` (normally $10,000) of pretend money
 split over its holdings by weight.  It is "bought" at each holding's last
 closing price *before* the day it was created, so the starting point never
 moves once set, and on the first day the gain since start equals today's
-change.  Values use the ratio of the current price to the adjusted close at
-the start, so dividends and splits since then count toward the gain.
+change.  That price and its date are recorded on each holding when the
+portfolio is saved (and on first view for portfolios saved without them).
+Values use the ratio of the current price to the start day's adjusted
+close, re-fetched for that exact day, so dividends and splits since then
+count toward the gain; if that bar can't be had the recorded price is used.
 
 Changing the holdings or weights of a saved portfolio starts it again from
 the day of the change; renaming it or editing its notes does not.
@@ -50,6 +53,8 @@ class HoldingValue:
     change: float | None = None
     change_pct: float | None = None
     start_date: dt.date | None = None
+    start_price: float | None = None
+    shares_held: float | None = None
     cost: float | None = None
     value: float | None = None
     day_change: float | None = None
@@ -118,6 +123,29 @@ def start_bar(prices: PriceSource, symbol: str, created: dt.date) -> PriceBar | 
     return after.bars[0] if after.bars else None
 
 
+def _start_prices(prices: PriceSource, p: Portfolio, h: Holding, q: Quote) -> tuple[dt.date | None, float, float]:
+    """``(start date, start close, start adjusted close)`` for valuing ``h``.
+
+    The recorded start day's bar is re-fetched when it can be, since its
+    adjusted close (dividends) and close (splits) change after the fact;
+    without it the recorded price is used as is.
+    """
+    if h.start_price is not None:
+        try:
+            bars = prices.history(h.symbol, h.start_date, h.start_date).bars
+        except PriceSourceError as exc:
+            log.warning("No bar for %s on %s; using the recorded start price: %s", h.symbol, h.start_date, exc)
+            bars = []
+        if bars:
+            return h.start_date, bars[0].close, bars[0].adjclose
+        return h.start_date, h.start_price, h.start_price
+    bar = start_bar(prices, h.symbol, p.created)
+    if bar is None:
+        # Nothing recorded around the start yet: start from the current price.
+        return None, q.price, q.price
+    return bar.date, bar.close, bar.adjclose
+
+
 def _value_holding(prices: PriceSource, p: Portfolio, h: Holding, q: Quote | None) -> HoldingValue:
     row = HoldingValue(h.symbol, weight=h.weight, shares=h.shares)
     if q is None:
@@ -126,23 +154,44 @@ def _value_holding(prices: PriceSource, p: Portfolio, h: Holding, q: Quote | Non
     row.name = q.name
     row.price, row.change, row.change_pct = q.price, q.change, q.change_pct
     try:
-        bar = start_bar(prices, h.symbol, p.created)
+        row.start_date, start_close, start_adj = _start_prices(prices, p, h, q)
     except PriceSourceError as exc:
         log.warning("No start price for %s: %s", h.symbol, exc)
         row.problem = "Starting price unavailable"
         return row
-    if bar is None:
-        # Nothing recorded around the start yet: start from the current price.
-        start_close = start_adj = q.price
-    else:
-        row.start_date, start_close, start_adj = bar.date, bar.close, bar.adjclose
+    row.start_price = start_close
     row.cost = p.start_cash * h.weight / 100 if h.weight is not None else h.shares * start_close
+    row.shares_held = h.shares if h.shares is not None else row.cost / start_close
     row.value = row.cost * q.price / start_adj
     row.gain = row.value - row.cost
     row.gain_pct = row.gain / row.cost * 100 if row.cost else None
     if q.previous_close:
         row.day_change = row.value * (1 - q.previous_close / q.price)
     return row
+
+
+def record_start_prices(p: Portfolio, prices: PriceSource) -> bool:
+    """Record a start price and date on each holding that lacks one.
+
+    Uses the last close before ``p.created`` (else the first after it, else
+    the current price).  Holdings whose prices can't be had now are left
+    without; returns whether any holding changed.
+    """
+    changed = False
+    for h in p.holdings:
+        if h.start_price is not None:
+            continue
+        try:
+            bar = start_bar(prices, h.symbol, p.created)
+            if bar is not None:
+                h.start_price, h.start_date = bar.close, bar.date
+            else:
+                h.start_price, h.start_date = prices.quote(h.symbol).price, p.created
+        except PriceSourceError as exc:
+            log.warning("Start price for %s not recorded yet: %s", h.symbol, exc)
+            continue
+        changed = True
+    return changed
 
 
 def value_portfolio(p: Portfolio, prices: PriceSource) -> PortfolioValue:
@@ -274,7 +323,9 @@ def _save(existing: Portfolio | None):
     if existing is None:
         p = Portfolio(name=name, holdings=holdings, notes=notes)
     else:
-        changed = [h.to_dict() for h in holdings] != [h.to_dict() for h in existing.holdings]
+        changed = [h.position for h in holdings] != [h.position for h in existing.holdings]
+        if not changed:
+            holdings = existing.holdings
         p = Portfolio(name=name, holdings=holdings, notes=notes, start_cash=existing.start_cash,
                       created=dt.date.today() if changed else existing.created,
                       source_example=existing.source_example, id=existing.id)
@@ -290,12 +341,26 @@ def _save(existing: Portfolio | None):
         errors = check_symbols(holdings)
     if errors:
         return _render_form(existing, name, notes, rows, errors, 400)
+    record_start_prices(p, get_prices())
     store = get_store()
     if existing is None:
         store.add(p)
     else:
         store.update(p)
     return redirect(url_for("portfolios.watch", portfolio_id=p.id), code=303)
+
+
+def _with_start_prices(p: Portfolio) -> Portfolio:
+    """Record and save start prices on a portfolio saved without them
+    (before they were recorded, or copied from an example)."""
+    if all(h.start_price is not None for h in p.holdings):
+        return p
+    if record_start_prices(p, get_prices()):
+        try:
+            get_store().update(p)
+        except (PortfolioNotFound, ValidationError) as exc:
+            log.warning("Could not save start prices for %s: %s", p.name, exc)
+    return p
 
 
 def _get_or_404(portfolio_id: str) -> Portfolio:
@@ -310,7 +375,7 @@ def _get_or_404(portfolio_id: str) -> Portfolio:
 @bp.get("/")
 def index():
     prices = get_prices()
-    values = [value_portfolio(p, prices) for p in get_store().list()]
+    values = [value_portfolio(_with_start_prices(p), prices) for p in get_store().list()]
     return render_template("portfolios/index.html", values=values, deleted=request.args.get("deleted"))
 
 
@@ -323,7 +388,7 @@ def new():
 
 @bp.get("/<portfolio_id>/")
 def watch(portfolio_id: str):
-    p = _get_or_404(portfolio_id)
+    p = _with_start_prices(_get_or_404(portfolio_id))
     try:
         warnings = p.validate()
     except ValidationError as exc:
@@ -334,7 +399,7 @@ def watch(portfolio_id: str):
 @bp.get("/<portfolio_id>/table")
 def watch_table(portfolio_id: str):
     """Just the watch table, for the page's Refresh button."""
-    p = _get_or_404(portfolio_id)
+    p = _with_start_prices(_get_or_404(portfolio_id))
     return render_template("portfolios/_watch_table.html", pv=value_portfolio(p, get_prices()))
 
 
