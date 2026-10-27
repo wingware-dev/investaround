@@ -1,0 +1,142 @@
+/* investaround shared styles.  Feature pages use these classes; page-only
+   tweaks go in a <style> inside the page's head block. */
+
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --text: #1d2433;
+  --muted: #677189;
+  --border: #dde2ec;
+  --accent: #2f6fde;
+  --accent-dark: #1f54b0;
+  --up: #12805c;
+  --down: #c2362f;
+  --warn-bg: #fff6dd;
+  --warn-border: #e8c665;
+  --error-bg: #fdecea;
+  --error-border: #e59b95;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(20, 30, 60, .08);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font: 16px/1.5 var(--font);
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+a { color: var(--accent); }
+h1, h2, h3 { line-height: 1.25; margin: 0 0 .6em; }
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.05rem; }
+.muted { color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.up { color: var(--up); }
+.down { color: var(--down); }
+
+/* Header and nav */
+.site-header {
+  display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+  padding: .75rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.brand { font-weight: 700; font-size: 1.2rem; color: var(--text); text-decoration: none; }
+.brand-mark { color: var(--accent); }
+.site-nav { display: flex; gap: .25rem; flex-wrap: wrap; flex: 1; }
+.site-nav a {
+  padding: .4rem .8rem; border-radius: 999px;
+  color: var(--text); text-decoration: none;
+}
+.site-nav a:hover { background: var(--bg); }
+.site-nav a.active { background: var(--accent); color: #fff; }
+.pretend-badge {
+  font-size: .8rem; padding: .2rem .6rem; border-radius: 999px;
+  background: var(--warn-bg); border: 1px solid var(--warn-border);
+}
+
+/* Layout */
+.page { width: 100%; max-width: 1100px; margin: 0 auto; padding: 1.5rem; flex: 1; }
+.grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.spacer { flex: 1; }
+.hero { padding: 1rem 0 1.5rem; }
+.lead { font-size: 1.15rem; color: var(--muted); max-width: 46rem; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.placeholder { border-style: dashed; }
+
+/* Notices and the page-wide banner (#banner, toggled by page JS) */
+.banner { padding: .6rem 1.5rem; background: var(--warn-bg); border-bottom: 1px solid var(--warn-border); }
+.banner.error, .notice-error { background: var(--error-bg); border-color: var(--error-border); }
+.notice { border-left: 4px solid var(--warn-border); background: var(--warn-bg); }
+.notice-error { border-left-color: var(--down); }
+
+/* Buttons and forms */
+.btn {
+  display: inline-block; cursor: pointer;
+  padding: .5rem 1rem; border-radius: 8px;
+  border: 1px solid var(--accent); background: var(--accent); color: #fff;
+  font: inherit; text-decoration: none;
+}
+.btn:hover { background: var(--accent-dark); }
+.btn-secondary { background: var(--surface); color: var(--accent); }
+.btn-secondary:hover { background: var(--bg); }
+.btn-danger { background: var(--down); border-color: var(--down); }
+.btn:disabled { opacity: .5; cursor: default; }
+label { display: block; font-weight: 600; margin-bottom: .25rem; }
+input, select, textarea {
+  font: inherit; padding: .45rem .6rem; border-radius: 6px;
+  border: 1px solid var(--border); background: #fff; color: var(--text);
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.field { margin-bottom: 1rem; }
+.field-error { color: var(--down); font-size: .9rem; }
+.hint { color: var(--muted); font-size: .9rem; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: .5rem .6rem; border-bottom: 1px solid var(--border); text-align: left; }
+th { font-size: .85rem; color: var(--muted); font-weight: 600; }
+tfoot td { font-weight: 700; border-bottom: none; }
+
+/* Plain-English tooltips: <span class="tip" data-tip="...">?</span> */
+.tip {
+  position: relative; display: inline-block; cursor: help;
+  width: 1.1em; height: 1.1em; line-height: 1.1em; text-align: center;
+  font-size: .75rem; border-radius: 50%; background: var(--border); color: var(--text);
+}
+.tip:hover::after, .tip:focus::after {
+  content: attr(data-tip);
+  position: absolute; left: 50%; top: 1.6em; transform: translateX(-50%); z-index: 10;
+  width: 16rem; padding: .5rem .7rem; border-radius: 6px;
+  background: var(--text); color: #fff; font-size: .85rem; font-weight: 400; line-height: 1.4;
+}
+
+/* Charts: wrap a <canvas> so Chart.js can size it */
+.chart-box { position: relative; height: 320px; }
+.chart-box.small { height: 120px; }
+
+/* Misc */
+.pill { display: inline-block; padding: .1rem .5rem; border-radius: 999px; background: var(--bg); font-size: .8rem; }
+.site-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); font-size: .85rem; color: var(--muted); }
+.site-footer p { margin: .2rem 0; }
+
+@media (max-width: 640px) {
+  .site-header { gap: .75rem; }
+  .page { padding: 1rem; }
+}

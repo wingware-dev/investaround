@@ -33,3 +33,6 @@ htmlcov/
 
 # Wing private task files (not committed)
 .TASKS/
+
+# investaround user data: portfolios.json and the price cache
+/data/
