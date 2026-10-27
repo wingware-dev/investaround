@@ -54,7 +54,7 @@ def test_lab_form_changes_portfolio_range_and_options(page):
     page.get_by_label("Spread over", exact=True).select_option("6")
     page.get_by_label("Rebalance", exact=True).select_option("quarterly")
     page.get_by_role("button", name="Run it").click()
-    page.wait_for_url("**/learn/lab?portfolio=example%3Asp500&range=2020&months=6&period=quarterly")
+    page.wait_for_url("**/learn/lab?portfolio=example%3Asp500&range=2020&months=6&period=quarterly&cash=none")
     assert "Spread over 6 months" in page.locator("article[data-strategy=dca]").inner_text()
     assert page.locator("article[data-strategy=rebalance_quarterly]").is_visible()
     assert "VOO 100%" in page.locator("#lab-summary").inner_text()
@@ -85,3 +85,25 @@ def test_lab_offers_every_example_portfolio(page):
     assert examples.all_inner_texts() == [ex.name for ex in load_examples()]
     assert picker.locator("option:checked").inner_text() == "60/40 stocks and bonds"
     assert page.locator("optgroup[label='My portfolios']").count() == 0
+
+
+def test_lab_waiting_cash_can_earn_interest(page):
+    page.goto("/learn/lab")
+    assert not page.get_by_label("Fixed rate, percent a year").is_visible()
+    assert page.locator("[data-interest]").count() == 0
+    page.get_by_label("Waiting cash earns").select_option(label="A fixed rate")
+    page.get_by_label("Fixed rate, percent a year").fill("5")
+    page.get_by_role("button", name="Run it").click()
+    page.wait_for_url("**cash=fixed&cash_rate=5")
+    dca = page.locator("article[data-strategy=dca]")
+    assert "the rest waits as cash earning 5% a year" in dca.inner_text()
+    assert dca.locator("[data-interest]").inner_text() != "$0"
+    shows = page.locator("#what-this-shows").inner_text()
+    assert "money waiting to be invested earned 5% a year: $" in shows
+    assert "earns nothing" not in shows
+
+    page.get_by_label("Waiting cash earns").select_option(label="Treasury bill rates")
+    assert not page.get_by_label("Fixed rate, percent a year").is_visible()
+    page.get_by_role("button", name="Run it").click()
+    page.wait_for_url("**cash=tbill**")
+    assert "earning Treasury bill rates, about" in page.locator("article[data-strategy=dca]").inner_text()

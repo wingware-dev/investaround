@@ -145,3 +145,42 @@ def test_price_failure_for_a_holding_says_so(browser, tmp_path):
         page.context.close()
         live.stop()
     assert not errors
+
+
+def test_cash_waiting_for_a_late_holding_can_earn_tbill_rates(page):
+    page.goto("/history/?example=three-fund&range=2008")
+    # Off by default: no interest row, and the rate box is hidden.
+    assert page.locator('#metrics tr[data-metric="interest"]').count() == 0
+    assert not page.locator("#cash_rate").is_visible()
+    worth_at_zero = page.locator("[data-final]").inner_text()
+
+    page.get_by_label("Waiting cash earns").select_option(label="Treasury bill rates")
+    assert not page.locator("#cash_rate").is_visible()
+    page.get_by_role("button", name="2008 crash").click()
+    page.wait_for_url("**cash=tbill**")
+    note = page.locator("#start-notes").inner_text()
+    assert "Cash waiting to be invested earned Treasury bill rates, about" in note
+    assert "in interest, counted in the results" in note
+    interest = metric(page, "interest")
+    assert interest[0].startswith("$") and interest[0] != "$0"
+    assert interest[1] == "$0"  # SPY had prices from the start, so nothing waited
+    assert page.locator("[data-final]").inner_text() != worth_at_zero
+    assert page.get_by_label("Waiting cash earns").input_value() == "tbill"
+
+
+def test_cash_at_a_fixed_rate(page):
+    page.goto("/history/?example=three-fund&range=2008")
+    page.get_by_label("Waiting cash earns").select_option(label="A fixed rate")
+    rate = page.get_by_label("Fixed rate, percent a year")
+    assert rate.is_visible() and rate.input_value() == "4"
+    rate.fill("3")
+    page.get_by_role("button", name="Show me").click()
+    page.wait_for_url("**cash=fixed&cash_rate=3**")
+    assert "earned 3% a year: $" in page.locator("#start-notes").inner_text()
+
+    rate = page.get_by_label("Fixed rate, percent a year")
+    rate.fill("lots")
+    page.get_by_role("button", name="Show me").click()
+    page.wait_for_url("**cash_rate=lots**")
+    assert "Give the rate as a number of percent a year" in page.locator("#cash-field").inner_text()
+    assert page.locator("#results").count() == 0

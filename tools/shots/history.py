@@ -14,6 +14,7 @@ def history_10y(page, live):
     _run(page, "example=three-fund&range=10y")
 
 
-@shot("21-history-2008", "What if? page: the 2008 crash, with VXUS starting late")
+@shot("21-history-2008", "What if? page: the 2008 crash, with VXUS starting late and its waiting cash "
+                         "earning Treasury bill rates")
 def history_2008(page, live):
-    _run(page, "example=three-fund&range=2008")
+    _run(page, "example=three-fund&range=2008&cash=tbill")

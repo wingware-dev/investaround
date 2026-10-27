@@ -1,7 +1,23 @@
-// "What if?" page: shows the mix field only for "Your own mix", and draws
-// the growth chart from the JSON the server put in #history-chart-data.
+// "What if?" page: shows the mix field only for "Your own mix", the rate
+// field only for a fixed cash rate, and draws the growth chart from the JSON
+// the server put in #history-chart-data.
 (function () {
   "use strict";
+
+  const cash = document.getElementById("cash");
+  const cashRate = document.getElementById("cash-rate-wrap");
+  if (cash && cashRate) {
+    // Only a fixed rate needs (or sends) the rate box.
+    const syncCash = function () {
+      cashRate.hidden = cash.value !== "fixed";
+      document.getElementById("cash_rate").disabled = cashRate.hidden;
+    };
+    cash.addEventListener("change", function () {
+      syncCash();
+      if (cash.value === "fixed") document.getElementById("cash_rate").focus();
+    });
+    syncCash();
+  }
 
   const what = document.getElementById("what");
   const symbolsField = document.getElementById("symbols-field");

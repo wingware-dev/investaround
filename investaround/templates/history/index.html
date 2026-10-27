@@ -7,6 +7,9 @@
   .history-form .grow { flex: 1; min-width: 16rem; }
   .history-form select, .history-form input[type=text] { width: 100%; }
   .history-form #benchmark { width: 7rem; }
+  .history-form .cash-choice { display: flex; gap: .4rem; align-items: center; white-space: nowrap; }
+  .history-form #cash { width: auto; }
+  .history-form #cash_rate { width: 3.5rem; }
   .history-form fieldset { border: none; padding: 0; margin: .25rem 0 0; }
   .history-form legend { font-weight: 600; margin-bottom: .35rem; padding: 0; }
   .presets { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .6rem; }
@@ -69,6 +72,20 @@
         <span class="tip" tabindex="0" data-tip="A yardstick to measure against. SPY follows the S&P 500, the 500 biggest US companies, which is the usual one.">?</span></label>
       <input type="text" id="benchmark" name="benchmark" value="{{ form.benchmark }}" autocomplete="off">
       {% if form.errors.benchmark %}<p class="field-error" role="alert">{{ form.errors.benchmark }}</p>{% endif %}
+    </div>
+    <div class="field" id="cash-field">
+      <label for="cash">Waiting cash earns
+        <span class="tip" tabindex="0" data-tip="{{ cash_tip }}">?</span></label>
+      <div class="cash-choice">
+        <select id="cash" name="cash">
+          {% for key, label in cash_kinds %}
+          <option value="{{ key }}" {% if form.cash.kind == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <span id="cash-rate-wrap"><input type="text" id="cash_rate" name="cash_rate" value="{{ form.cash.rate_text }}"
+              inputmode="decimal" autocomplete="off" aria-label="Fixed rate, percent a year"> % a year</span>
+      </div>
+      {% if form.errors.cash %}<p class="field-error" role="alert">{{ form.errors.cash }}</p>{% endif %}
     </div>
     <div class="field">
       <button class="btn" type="submit" name="range" value="{{ form.range }}">Show me</button>

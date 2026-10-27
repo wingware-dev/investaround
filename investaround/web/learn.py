@@ -9,7 +9,9 @@ analytics.strategies:
 - all at once, rebalanced back to the target weights every period,
 
 and shows them side by side with a plain "what this shows" explanation built
-from the results.  The lab is pure GET: the form's choices are in the URL, so
+from the results.  Waiting cash earns nothing unless the "cash earns" option
+(web/cash.py) picks a fixed rate or Treasury bill rates.  The lab is pure
+GET: the form's choices are in the URL, so
 a result can be bookmarked or linked to; the Examples gallery links each card
 to ``/learn/lab?portfolio=example:<id>``.
 """
@@ -27,6 +29,7 @@ from ..analytics.strategies import StrategyResult, lump_sum_vs_dca, rebalanced
 from ..app import get_prices, get_store
 from ..models import DEFAULT_START_CASH, PriceSeries
 from ..prices.base import PriceSource, PriceSourceError
+from .cash import CASH_KINDS, CASH_TIP, NO_INTEREST, CashRate, read_cash, resolve_cash
 from .examples import load_examples
 
 log = logging.getLogger(__name__)
@@ -99,6 +102,7 @@ class LabResult:
     weights: dict[str, float]
     late_starts: dict[str, dt.date]
     no_data: list[str]
+    cash: CashRate = NO_INTEREST
 
     @property
     def lump(self) -> StrategyResult:
@@ -115,15 +119,16 @@ class LabResult:
 
 def run_lab(prices: dict[str, PriceSeries], weights: dict[str, float], start: dt.date, end: dt.date,
             months: int = DEFAULT_DCA_MONTHS, period: str = DEFAULT_PERIOD,
-            amount: float = LAB_AMOUNT) -> LabResult:
+            amount: float = LAB_AMOUNT, cash: CashRate = NO_INTEREST) -> LabResult:
     """The three strategies for one pot of money; raises AnalyticsError."""
-    vs = lump_sum_vs_dca(prices, weights, total=amount, months=months, start=start, end=end)
-    reb = rebalanced(prices, weights, period, amount=amount, start=start, end=end)
+    vs = lump_sum_vs_dca(prices, weights, total=amount, months=months, start=start, end=end,
+                         cash_rate=cash.rate)
+    reb = rebalanced(prices, weights, period, amount=amount, start=start, end=end, cash_rate=cash.rate)
     s = vs.lump.series
     return LabResult(
         strategies=[vs.lump, vs.dca, reb], difference=vs.difference, winner=vs.winner,
         months=months, period=period, start=s.start, end=s.end, weights=dict(weights),
-        late_starts=dict(s.late_starts), no_data=list(s.no_data))
+        late_starts=dict(s.late_starts), no_data=list(s.no_data), cash=cash)
 
 
 def explain(r: LabResult) -> list[str]:
@@ -145,9 +150,14 @@ def explain(r: LabResult) -> list[str]:
         out.append(f"The worst drop was {_pct(lump.max_drawdown.depth)} all at once and "
                    f"{_pct(dca.max_drawdown.depth)} spread out. Spreading out mostly buys peace of mind: "
                    "if a crash comes right after you start, less of your money is in it.")
-    out.append("In this lab, money waiting to be invested earns nothing (0%). That tilts the comparison "
-               "slightly toward putting it all in at once; in real life the waiting money could earn a "
-               "little interest in a savings account.")
+    if r.cash.earns:
+        out.append(f"Here, money waiting to be invested earned {r.cash.phrase(r.dca.series)}: "
+                   f"{_money(dca.interest_earned)} in interest for the spread-out way, counted in its result. "
+                   "Set waiting cash to earn nothing to see how much that interest mattered.")
+    else:
+        out.append("In this run, money waiting to be invested earns nothing (0%). That tilts the comparison "
+                   "slightly toward putting it all in at once; in real life the waiting money could earn a "
+                   "little interest. Try a fixed rate or Treasury bill rates under “Waiting cash earns”.")
 
     if len(r.weights) == 1:
         out.append("With only one holding there is nothing to rebalance, so the rebalanced result is the "
@@ -269,20 +279,26 @@ def lab():
     if months not in DCA_MONTHS:
         months = DEFAULT_DCA_MONTHS
     period = _arg("period", REBALANCE_PERIODS, DEFAULT_PERIOD)
+    cash_form = read_cash(request.args)
 
     src = get_prices()
     start, end = range_dates(range_id, _today(src))
-    result = error = None
+    result = error = cash_note = None
     symbols = list(choice.weights or choice.shares)
-    try:
-        prices = {s: src.history(s, start, end) for s in symbols}
-        weights = choice.weights or _weights_from_shares(choice.shares, prices)
-        result = run_lab(prices, weights, start, end, months=months, period=period)
-    except PriceSourceError as exc:
-        log.warning("Strategy lab: no prices for %s: %s", ", ".join(symbols), exc)
-        error = f"Could not get prices right now: {exc}"
-    except AnalyticsError as exc:
-        error = f"Can't run this one: {exc}. Try a later range or a different portfolio."
+    if cash_form.error:
+        error = cash_form.error + "."
+    else:
+        try:
+            cash = resolve_cash(cash_form, src, start, end)
+            cash_note = cash.note
+            prices = {s: src.history(s, start, end) for s in symbols}
+            weights = choice.weights or _weights_from_shares(choice.shares, prices)
+            result = run_lab(prices, weights, start, end, months=months, period=period, cash=cash)
+        except PriceSourceError as exc:
+            log.warning("Strategy lab: no prices for %s: %s", ", ".join(symbols), exc)
+            error = f"Could not get prices right now: {exc}"
+        except AnalyticsError as exc:
+            error = f"Can't run this one: {exc}. Try a later range or a different portfolio."
 
     return render_template(
         "learn/lab.html",
@@ -290,6 +306,7 @@ def lab():
         mine=[c for c in choices if c.value.startswith(PORTFOLIO_PREFIX)], choice=choice, ranges=RANGES, range_id=range_id,
         dca_months=DCA_MONTHS, months=months, periods=REBALANCE_PERIODS, period=period,
         amount=LAB_AMOUNT, result=result, error=error,
+        cash_kinds=CASH_KINDS, cash_tip=CASH_TIP, cash_form=cash_form, cash_note=cash_note,
         explanation=explain(result) if result else [],
         chart=chart_data(result) if result else None,
     )

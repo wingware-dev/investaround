@@ -68,6 +68,23 @@ def test_rebalancing_two_holdings_reports_the_drift():
     assert "drifted from 50% A / 50% B at the start to 76% A / 24% B" in text
 
 
+def test_waiting_cash_at_a_fixed_rate_is_explained():
+    from investaround.web.cash import read_cash, resolve_cash
+
+    cash = resolve_cash(read_cash({"cash": "fixed", "cash_rate": "5"}), FakePriceSource(), START,
+                        dt.date(2021, 12, 31))
+    prices = {"A": monthly("A", START, [100] * 13)}
+    r = run_lab(prices, {"A": 100}, START, dt.date(2021, 12, 31), months=12, cash=cash)
+    # Flat prices: only the interest on the waiting cash separates the two
+    assert r.lump.metrics.final_value == pytest.approx(10_000)
+    assert r.dca.metrics.interest_earned > 0
+    assert r.dca.metrics.final_value == pytest.approx(10_000 + r.dca.metrics.interest_earned)
+    assert r.winner == "dca"
+    text = " ".join(explain(r))
+    assert "money waiting to be invested earned 5% a year: $" in text
+    assert "earns nothing" not in text
+
+
 def test_chart_data_is_month_end_values_for_each_strategy():
     prices = {"A": series("A", START, [100 + i for i in range(60)])}
     r = run_lab(prices, {"A": 100}, START, dt.date(2020, 12, 31), months=3)
@@ -118,3 +135,25 @@ def test_lab_without_prices_says_so(tmp_path):
     html = resp.get_data(as_text=True)
     assert 'id="lab-error"' in html and "Could not get prices right now" in html
     assert "What this shows" not in html
+
+
+def test_lab_with_treasury_bill_rates(app):
+    html = app.test_client().get("/learn/lab?cash=tbill").get_data(as_text=True)
+    assert '<option value="tbill" selected>' in html
+    assert "the rest waits as cash earning Treasury bill rates, about" in html
+    assert "data-interest" in html and "earns nothing" not in html
+
+
+def test_lab_bad_cash_rate_says_so(app):
+    html = app.test_client().get("/learn/lab?cash=fixed&cash_rate=abc").get_data(as_text=True)
+    assert 'id="lab-error"' in html and "Give the rate as a number of percent a year" in html
+    assert 'value="abc"' in html
+    assert "What this shows" not in html
+
+
+def test_lab_falls_back_to_no_interest_when_tbill_rates_fail(tmp_path):
+    app = create_app({"DATA_DIR": str(tmp_path / "data"), "TESTING": True,
+                      "PRICE_SOURCE_OBJ": FakePriceSource(fail_symbols={"^IRX"})})
+    html = app.test_client().get("/learn/lab?cash=tbill").get_data(as_text=True)
+    assert "Could not get Treasury bill rates right now" in html
+    assert "earns nothing (0%)" in html

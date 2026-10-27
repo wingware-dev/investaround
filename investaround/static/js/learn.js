@@ -1,6 +1,22 @@
-// Learn pages: the glossary filter (/learn/) and the strategy lab chart (/learn/lab).
+// Learn pages: the glossary filter (/learn/), and the strategy lab's cash-rate
+// field and chart (/learn/lab).
 (function () {
   "use strict";
+
+  // Strategy lab: the rate box only matters (and is only sent) for a fixed cash rate.
+  const cash = document.getElementById("lab-cash");
+  const cashRate = document.getElementById("lab-cash-rate-wrap");
+  if (cash && cashRate) {
+    const syncCash = function () {
+      cashRate.hidden = cash.value !== "fixed";
+      document.getElementById("lab-cash-rate").disabled = cashRate.hidden;
+    };
+    cash.addEventListener("change", function () {
+      syncCash();
+      if (cash.value === "fixed") document.getElementById("lab-cash-rate").focus();
+    });
+    syncCash();
+  }
 
   // Glossary: hide terms whose name or meaning doesn't contain the typed text.
   const filter = document.getElementById("glossary-filter");

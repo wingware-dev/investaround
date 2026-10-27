@@ -5,6 +5,8 @@
   .lab-form { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; }
   .lab-form .field { margin-bottom: 0; }
   .lab-form select { min-width: 12rem; }
+  .lab-form .cash-choice { display: flex; gap: .4rem; align-items: center; white-space: nowrap; }
+  .lab-form #lab-cash-rate { width: 3.5rem; }
   .strategies { display: grid; gap: 1rem; grid-template-columns: repeat(3, 1fr); }
   .strategy { margin-bottom: 0; border-top: 4px solid var(--line); }
   .strategy h3 { margin-bottom: .2rem; }
@@ -75,6 +77,19 @@
       {% endfor %}
     </select>
   </div>
+  <div class="field">
+    <label for="lab-cash">Waiting cash earns
+      <span class="tip" tabindex="0" data-tip="{{ cash_tip }}">?</span></label>
+    <div class="cash-choice">
+      <select id="lab-cash" name="cash">
+        {% for key, label in cash_kinds %}
+        <option value="{{ key }}" {% if cash_form.kind == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <span id="lab-cash-rate-wrap"><input type="text" id="lab-cash-rate" name="cash_rate" value="{{ cash_form.rate_text }}"
+            inputmode="decimal" autocomplete="off" aria-label="Fixed rate, percent a year"> % a year</span>
+    </div>
+  </div>
   <button class="btn" type="submit">Run it</button>
 </form>
 
@@ -89,10 +104,11 @@
   {{ r.end.strftime('%b') }} {{ r.end.day }}, {{ r.end.year }}, dividends reinvested.
   {% for sym, w in r.weights.items() %}<span class="pill">{{ sym }} {{ '{:.0f}'.format(w / (r.weights.values() | sum) * 100) }}%</span> {% endfor %}
 </p>
-{% if r.late_starts or r.no_data %}
+{% if r.late_starts or r.no_data or cash_note %}
 <div class="card notice" role="status" id="lab-late">
   {% for sym, d in r.late_starts.items() %}{{ sym }} has no prices before {{ d.strftime('%b %Y') }}, so its share waited as cash until then. {% endfor %}
   {% for sym in r.no_data %}{{ sym }} has no prices in this range, so its share stayed as cash. {% endfor %}
+  {% if cash_note %}{{ cash_note }}{% endif %}
 </div>
 {% endif %}
 
@@ -106,7 +122,7 @@
     <h3 id="strategy-{{ s.key }}">{{ s.label }}{% if wins %}<span class="pill winner-pill">Beat {{ 'spreading out' if s.key == 'lump_sum' else 'all at once' }}</span>{% endif %}</h3>
     <p class="how">
       {% if s.key == 'lump_sum' %}Invest everything on day one, then leave it alone.
-      {% elif s.key == 'dca' %}Invest ${{ '{:,.0f}'.format(amount / r.months) }} on the first trading day of each month; the rest waits as cash earning 0%.
+      {% elif s.key == 'dca' %}Invest ${{ '{:,.0f}'.format(amount / r.months) }} on the first trading day of each month; the rest waits as cash earning {{ r.cash.phrase(r.dca.series) if r.cash.earns else '0%' }}.
       {% else %}Invest everything on day one, then reset to the target mix every {{ {'monthly': 'month', 'quarterly': 'quarter', 'yearly': 'year'}[r.period] }}.
       {% endif %}
     </p>
@@ -123,6 +139,10 @@
       {% if m.worst_year %}
       <tr><th scope="row">Worst full year</th>
           <td class="num">{{ m.worst_year.year }}: {{ '{:+.1f}'.format(m.worst_year.ret * 100) }}%</td></tr>
+      {% endif %}
+      {% if r.cash.earns %}
+      <tr><th scope="row">Interest on cash <span class="tip" tabindex="0" data-tip="Interest earned by money while it waited as cash. It is already counted in the result above.">?</span></th>
+          <td class="num" data-interest>${{ '{:,.0f}'.format(m.interest_earned) }}</td></tr>
       {% endif %}
     </table>
   </article>

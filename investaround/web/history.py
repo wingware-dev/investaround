@@ -14,6 +14,7 @@ Query parameters (a GET form, so every result has an address to share):
   symbols    the custom mix: "VTI 60, BND 40", or "VTI, BND" for equal weights
   range      a key of PRESETS, or "custom" with start= and end= (YYYY-MM-DD)
   benchmark  symbol to compare with, default SPY
+  cash, cash_rate   what money waiting to be invested earns (web/cash.py)
 """
 
 from __future__ import annotations
@@ -32,6 +33,7 @@ from ..app import get_prices, get_store
 from ..models import DEFAULT_START_CASH, MAX_HOLDINGS, Holding, PriceSeries, ValidationError, normalize_symbol
 from ..prices.base import PriceSource, PriceSourceError, UnknownSymbol
 from ..storage import PortfolioNotFound
+from .cash import CASH_KINDS, CASH_TIP, NO_INTEREST, CashForm, CashRate, read_cash, resolve_cash
 from .examples import get_example, load_examples
 
 log = logging.getLogger(__name__)
@@ -188,6 +190,7 @@ class Form:
     end: str
     benchmark: str
     submitted: bool
+    cash: CashForm = field(default_factory=lambda: CashForm("none", ""))
     errors: dict[str, str] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
 
@@ -202,12 +205,15 @@ def read_form(args) -> Form:
         elif args.get("symbols", "").strip():
             what = "custom"
     submitted = bool(what)
-    return Form(
+    form = Form(
         what=what, symbols=args.get("symbols", "").strip(),
         range=args.get("range", "").strip() or DEFAULT_RANGE,
         start=args.get("start", "").strip(), end=args.get("end", "").strip(),
         benchmark=args.get("benchmark", "").strip() or DEFAULT_BENCHMARK,
-        submitted=submitted)
+        submitted=submitted, cash=read_cash(args))
+    if form.cash.error:
+        form.errors["cash"] = form.cash.error
+    return form
 
 
 def resolve_subject(form: Form) -> Subject | None:
@@ -282,10 +288,14 @@ class Result:
     benchmark_problem: str | None
     start: dt.date | None  # as asked; None for "as far back as known"
     end: dt.date
+    cash: CashRate = NO_INTEREST
 
 
 def run(subject: Subject, start: dt.date | None, end: dt.date, benchmark: str, form: Form) -> Result | None:
     prices = get_prices()
+    cash = resolve_cash(form.cash, prices, start, end)
+    if cash.note:
+        form.notes.append(cash.note)
     symbols = [h.symbol for h in subject.holdings]
     try:
         series, unknown = fetch_histories(prices, symbols, start, end)
@@ -298,7 +308,8 @@ def run(subject: Subject, start: dt.date | None, end: dt.date, benchmark: str, f
                             "Check the spelling, or look the symbol up on the My portfolios page.")
         return None
     try:
-        vs = portfolio_value_series(subject.holdings, series, subject.start_cash, start, end)
+        vs = portfolio_value_series(subject.holdings, series, subject.start_cash, start, end,
+                                    cash_rate=cash.rate)
     except AnalyticsError as exc:
         log.info("No backtest for %s %s..%s: %s", symbols, start, end, exc)
         form.errors["prices"] = (f"None of these have prices between {fmt_date(start) or 'the start'} "
@@ -320,7 +331,7 @@ def run(subject: Subject, start: dt.date | None, end: dt.date, benchmark: str, f
     return Result(subject=subject, series=vs, metrics=comparison.portfolio if comparison else metrics(vs),
                   comparison=comparison, benchmark=benchmark,
                   benchmark_name=BENCHMARK_NAMES.get(benchmark, benchmark),
-                  benchmark_problem=problem, start=start, end=end)
+                  benchmark_problem=problem, start=start, end=end, cash=cash)
 
 
 # ------------------------------------------------------------ view models
@@ -344,6 +355,9 @@ def start_notes(r: Result) -> list[str]:
         for sym, first in r.comparison.benchmark_series.late_starts.items():
             out.append(f"The comparison, {sym}, has no prices before {fmt_date(first)}, "
                        "so its money waited as cash until then.")
+    if r.cash.earns and r.metrics.interest_earned >= 0.5:
+        out.append(f"Cash waiting to be invested earned {r.cash.phrase(vs)}: "
+                   f"{fmt_money(r.metrics.interest_earned)} in interest, counted in the results.")
     return out
 
 
@@ -358,6 +372,8 @@ METRIC_TIPS = {
            "It shows how much nerve it took to hold on."),
     "best": "The best full calendar year in the range. Shows n/a when the range has no full year.",
     "worst": "The worst full calendar year in the range. Shows n/a when the range has no full year.",
+    "interest": ("Interest earned by money while it waited as cash, for a holding with no prices yet. "
+                 "It is already counted in the numbers above."),
 }
 
 
@@ -383,6 +399,7 @@ def metric_cells(m: Metrics) -> dict[str, dict]:
         "dd": {"text": dd_text, "detail": dd_detail, "cls": "down" if dd else ""},
         "best": {"text": best, "detail": best_detail, "cls": sign_class(m.best_year and m.best_year.ret)},
         "worst": {"text": worst, "detail": worst_detail, "cls": sign_class(m.worst_year and m.worst_year.ret)},
+        "interest": {"text": fmt_money(m.interest_earned), "cls": ""},
     }
 
 
@@ -395,6 +412,12 @@ METRIC_ROWS = (
     ("best", "Best year"),
     ("worst", "Worst year"),
 )
+INTEREST_ROW = ("interest", "Interest on cash")
+
+
+def metric_rows(r: Result) -> tuple[tuple[str, str], ...]:
+    """The metrics table rows; the interest row only when cash earns something."""
+    return METRIC_ROWS + (INTEREST_ROW,) if r.cash.earns else METRIC_ROWS
 
 
 def holding_rows(r: Result) -> list[dict]:
@@ -462,10 +485,11 @@ def index():
             result = run(subject, start, end, benchmark, form)
 
     ctx = {"form": form, "portfolios": portfolios, "examples": examples, "presets": PRESETS,
-           "result": result, "today": today, "fmt_date": fmt_date, "fmt_money": fmt_money}
+           "result": result, "today": today, "fmt_date": fmt_date, "fmt_money": fmt_money,
+           "cash_kinds": CASH_KINDS, "cash_tip": CASH_TIP}
     if result:
         ctx.update(
-            start_notes=start_notes(result), metric_rows=METRIC_ROWS, metric_tips=METRIC_TIPS,
+            start_notes=start_notes(result), metric_rows=metric_rows(result), metric_tips=METRIC_TIPS,
             cells=metric_cells(result.metrics),
             bench_cells=metric_cells(result.comparison.benchmark) if result.comparison else None,
             holding_rows=holding_rows(result), chart_data=chart_data(result),
