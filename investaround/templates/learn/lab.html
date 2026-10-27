@@ -37,12 +37,11 @@
   <div class="field">
     <label for="lab-portfolio">Portfolio</label>
     <select id="lab-portfolio" name="portfolio">
-      <optgroup label="Ready-made mixes">
-        {% for c in choices if c.value.startswith('preset:') %}
+      <optgroup label="Example portfolios">
+        {% for c in examples %}
         <option value="{{ c.value }}" {% if c.value == choice.value %}selected{% endif %}>{{ c.name }}</option>
         {% endfor %}
       </optgroup>
-      {% set mine = choices | rejectattr('value', 'in', preset_values) | list %}
       {% if mine %}
       <optgroup label="My portfolios">
         {% for c in mine %}

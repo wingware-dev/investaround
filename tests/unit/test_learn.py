@@ -103,7 +103,7 @@ def test_lab_runs_a_saved_share_count_portfolio(app):
 
 def test_lab_bad_choices_fall_back_to_defaults(app):
     html = app.test_client().get("/learn/lab?portfolio=nope&range=99y&months=7&period=daily").get_data(as_text=True)
-    assert 'value="preset:sixty-forty" selected' in html
+    assert 'value="example:sixty-forty" selected' in html
     assert re.search(r'value="10y"[^>]*selected', html)
     assert 'value="12" selected' in html
     assert 'value="yearly" selected' in html

@@ -49,14 +49,15 @@ def test_lab_shows_three_strategies_side_by_side(page):
 
 def test_lab_form_changes_portfolio_range_and_options(page):
     page.goto("/learn/lab")
-    page.get_by_label("Portfolio", exact=True).select_option(label="S&P 500 only (SPY)")
+    page.get_by_label("Portfolio", exact=True).select_option(label="S&P 500 only")
     page.get_by_label("When", exact=True).select_option("2020")
     page.get_by_label("Spread over", exact=True).select_option("6")
     page.get_by_label("Rebalance", exact=True).select_option("quarterly")
     page.get_by_role("button", name="Run it").click()
-    page.wait_for_url("**/learn/lab?portfolio=preset%3Asp500&range=2020&months=6&period=quarterly")
+    page.wait_for_url("**/learn/lab?portfolio=example%3Asp500&range=2020&months=6&period=quarterly")
     assert "Spread over 6 months" in page.locator("article[data-strategy=dca]").inner_text()
     assert page.locator("article[data-strategy=rebalance_quarterly]").is_visible()
+    assert "VOO 100%" in page.locator("#lab-summary").inner_text()
     assert "Feb 19, 2020" in page.locator("#lab-summary").inner_text()
     assert "only one holding there is nothing to rebalance" in page.locator("#what-this-shows").inner_text()
     # The form remembers the choices.
@@ -73,3 +74,14 @@ def test_lab_offers_my_portfolios(page, live_app):
     page.locator("#lab-summary").get_by_text("Tech bet:").wait_for()
     assert "QQQ 70%" in page.locator("#lab-summary").inner_text()
     assert "drifted from 70% QQQ / 30% NVDA" in page.locator("#what-this-shows").inner_text()
+
+
+def test_lab_offers_every_example_portfolio(page):
+    from investaround.web.examples import load_examples
+
+    page.goto("/learn/lab")
+    picker = page.get_by_label("Portfolio", exact=True)
+    examples = picker.locator("optgroup[label='Example portfolios'] option")
+    assert examples.all_inner_texts() == [ex.name for ex in load_examples()]
+    assert picker.locator("option:checked").inner_text() == "60/40 stocks and bonds"
+    assert page.locator("optgroup[label='My portfolios']").count() == 0

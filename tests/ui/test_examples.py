@@ -47,6 +47,16 @@ def test_try_it_copies_the_example_to_my_portfolios(page, live_app):
     assert sorted(p.name for p in live_app.store.list()) == ["Three-fund portfolio", "Three-fund portfolio (2)"]
 
 
+def test_try_in_the_strategy_lab(page, live_app):
+    page.goto("/examples/")
+    page.locator("#example-gold-reit").get_by_role("link", name="Try in the strategy lab").click()
+    page.wait_for_url(live_app.url + "/learn/lab?portfolio=example:gold-reit")
+    assert page.get_by_label("Portfolio", exact=True).locator("option:checked").inner_text() == (
+        "Gold and real-estate diversifier")
+    page.locator("#what-this-shows").wait_for()
+    assert "VNQ 15%" in page.locator("#lab-summary").inner_text()
+
+
 def test_see_how_it_did_links_to_history(page, live_app):
     page.goto("/examples/")
     page.locator("#example-sixty-forty").get_by_role("link", name="See how it would have done").click()

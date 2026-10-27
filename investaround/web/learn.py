@@ -10,7 +10,8 @@ analytics.strategies:
 
 and shows them side by side with a plain "what this shows" explanation built
 from the results.  The lab is pure GET: the form's choices are in the URL, so
-a result can be bookmarked or linked to.
+a result can be bookmarked or linked to; the Examples gallery links each card
+to ``/learn/lab?portfolio=example:<id>``.
 """
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ from ..analytics.strategies import StrategyResult, lump_sum_vs_dca, rebalanced
 from ..app import get_prices, get_store
 from ..models import DEFAULT_START_CASH, PriceSeries
 from ..prices.base import PriceSource, PriceSourceError
+from .examples import load_examples
 
 log = logging.getLogger(__name__)
 
@@ -37,22 +39,10 @@ DEFAULT_DCA_MONTHS = 12
 DEFAULT_PERIOD = "yearly"
 
 
-@dataclass(frozen=True)
-class Preset:
-    """A ready-made mix for the lab, for people with no saved portfolio yet."""
-
-    id: str
-    name: str
-    weights: dict[str, float]
-
-
-PRESETS = (
-    Preset("sixty-forty", "60/40 stocks and bonds (VTI, BND)", {"VTI": 60, "BND": 40}),
-    Preset("three-fund", "Three-fund (VTI, VXUS, BND)", {"VTI": 50, "VXUS": 30, "BND": 20}),
-    Preset("sp500", "S&P 500 only (SPY)", {"SPY": 100}),
-    Preset("stocks-gold", "Stocks and gold (SPY, GLD)", {"SPY": 70, "GLD": 30}),
-)
-DEFAULT_CHOICE = "preset:sixty-forty"
+# The picker offers the example portfolios (web/examples.py), then the user's own.
+EXAMPLE_PREFIX = "example:"
+PORTFOLIO_PREFIX = "portfolio:"
+DEFAULT_CHOICE = EXAMPLE_PREFIX + "sixty-forty"
 
 
 @dataclass(frozen=True)
@@ -225,19 +215,20 @@ def chart_data(r: LabResult) -> dict:
 
 @dataclass(frozen=True)
 class Choice:
-    value: str  # "preset:<id>" or "portfolio:<id>"
+    value: str  # "example:<id>" or "portfolio:<id>"
     name: str
     weights: dict[str, float] | None  # None for share-count portfolios: priced at the start
     shares: dict[str, float] | None = None
 
 
 def lab_choices() -> list[Choice]:
-    out = [Choice(f"preset:{p.id}", p.name, dict(p.weights)) for p in PRESETS]
+    out = [Choice(EXAMPLE_PREFIX + ex.id, ex.name, {h.symbol: h.weight for h in ex.holdings})
+           for ex in load_examples()]
     for p in get_store().list():
         if p.holdings and all(h.weight is not None for h in p.holdings):
-            out.append(Choice(f"portfolio:{p.id}", p.name, {h.symbol: h.weight for h in p.holdings}))
+            out.append(Choice(PORTFOLIO_PREFIX + p.id, p.name, {h.symbol: h.weight for h in p.holdings}))
         elif p.holdings and all(h.shares is not None for h in p.holdings):
-            out.append(Choice(f"portfolio:{p.id}", p.name, None, {h.symbol: h.shares for h in p.holdings}))
+            out.append(Choice(PORTFOLIO_PREFIX + p.id, p.name, None, {h.symbol: h.shares for h in p.holdings}))
     return out
 
 
@@ -295,7 +286,8 @@ def lab():
 
     return render_template(
         "learn/lab.html",
-        choices=choices, preset_values=[f"preset:{p.id}" for p in PRESETS], choice=choice, ranges=RANGES, range_id=range_id,
+        examples=[c for c in choices if c.value.startswith(EXAMPLE_PREFIX)],
+        mine=[c for c in choices if c.value.startswith(PORTFOLIO_PREFIX)], choice=choice, ranges=RANGES, range_id=range_id,
         dca_months=DCA_MONTHS, months=months, periods=REBALANCE_PERIODS, period=period,
         amount=LAB_AMOUNT, result=result, error=error,
         explanation=explain(result) if result else [],

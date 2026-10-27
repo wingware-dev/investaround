@@ -10,5 +10,5 @@ def learn(page, live):
 
 @shot("41-strategy-lab", "Strategy lab: all at once vs spread out vs rebalanced, 60/40 over 10 years")
 def strategy_lab(page, live):
-    page.goto("/learn/lab?portfolio=preset:sixty-forty&range=10y&months=12&period=yearly")
+    page.goto("/learn/lab?portfolio=example:sixty-forty&range=10y&months=12&period=yearly")
     page.locator("#what-this-shows").wait_for()

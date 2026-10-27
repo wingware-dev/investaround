@@ -82,6 +82,7 @@
         <button class="btn" type="submit">Try it as my portfolio</button>
       </form>
       <a class="btn btn-secondary" href="{{ url_for('history.index', example=ex.id) }}">See how it would have done</a>
+      <a class="btn btn-secondary" href="{{ url_for('learn.lab', portfolio='example:' ~ ex.id) }}">Try in the strategy lab</a>
     </div>
   </article>
 {% endfor %}
