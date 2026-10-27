@@ -9,11 +9,14 @@
   over some months with the rest waiting as cash.
 
 ``weights`` everywhere maps symbol to weight in any units (percent is fine).
+Each takes an optional keyword ``cash_rate`` for interest on uninvested cash
+(see performance.py); the default 0 means cash earns nothing.
 """
 
 from __future__ import annotations
 
 import datetime as dt
+import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
@@ -60,29 +63,33 @@ def _result(key: str, label: str, vs: ValueSeries) -> StrategyResult:
 
 def buy_and_hold(prices: Mapping[str, PriceSeries], weights: Mapping[str, float],
                  amount: float = DEFAULT_START_CASH, start: dt.date | None = None,
-                 end: dt.date | None = None) -> StrategyResult:
+                 end: dt.date | None = None, *,
+                 cash_rate: float | PriceSeries = 0.0) -> StrategyResult:
     if amount <= 0:
         raise AnalyticsError("Amount must be above 0")
-    vs = simulate(prices, weights, deposits={dt.date.min: amount}, start=start, end=end)
+    vs = simulate(prices, weights, deposits={dt.date.min: amount}, start=start, end=end,
+                  cash_rate=cash_rate)
     return _result("buy_and_hold", "Buy & hold", vs)
 
 
 def rebalanced(prices: Mapping[str, PriceSeries], weights: Mapping[str, float], period: str,
                amount: float = DEFAULT_START_CASH, start: dt.date | None = None,
-               end: dt.date | None = None) -> StrategyResult:
+               end: dt.date | None = None, *,
+               cash_rate: float | PriceSeries = 0.0) -> StrategyResult:
     if period not in REBALANCE_PERIODS:
         raise AnalyticsError(f"Unknown rebalancing period {period!r}")
     if amount <= 0:
         raise AnalyticsError("Amount must be above 0")
     vs = simulate(prices, weights, deposits={dt.date.min: amount}, rebalance=period,
-                  start=start, end=end)
+                  start=start, end=end, cash_rate=cash_rate)
     return _result(f"rebalance_{period}", f"Rebalance {period}", vs)
 
 
 def dollar_cost_average(prices: Mapping[str, PriceSeries], weights: Mapping[str, float],
                         monthly_amount: float, start: dt.date | None = None,
                         end: dt.date | None = None, initial: float = 0.0,
-                        rebalance: str | None = None) -> StrategyResult:
+                        rebalance: str | None = None, *,
+                        cash_rate: float | PriceSeries = 0.0) -> StrategyResult:
     """``initial`` (if any) plus ``monthly_amount`` on the first day, then
     ``monthly_amount`` on the first trading day of each later month."""
     if monthly_amount <= 0:
@@ -92,25 +99,31 @@ def dollar_cost_average(prices: Mapping[str, PriceSeries], weights: Mapping[str,
     cal = _calendar(prices, weights, start, end)
     deposits = {d: monthly_amount for d in month_starts(cal)}
     deposits[cal[0]] += initial
-    vs = simulate(prices, weights, deposits=deposits, rebalance=rebalance, calendar=cal)
+    vs = simulate(prices, weights, deposits=deposits, rebalance=rebalance, calendar=cal,
+                  cash_rate=cash_rate)
     return _result("dca", f"Invest {monthly_amount:,.0f} a month", vs)
 
 
 def lump_sum_vs_dca(prices: Mapping[str, PriceSeries], weights: Mapping[str, float],
                     total: float = DEFAULT_START_CASH, months: int = 12,
-                    start: dt.date | None = None, end: dt.date | None = None) -> LumpSumVsDca:
+                    start: dt.date | None = None, end: dt.date | None = None, *,
+                    cash_rate: float | PriceSeries = 0.0) -> LumpSumVsDca:
     """Both start with ``total`` in hand.  DCA invests it in ``months`` equal
     parts on the first trading day of each month; whatever the range is too
-    short to invest stays as cash."""
+    short to invest stays as cash.  With ``cash_rate`` the waiting cash earns
+    interest, and the last part invests all that is left."""
     if total <= 0:
         raise AnalyticsError("Amount must be above 0")
     if months < 1:
         raise AnalyticsError("Spread over at least one month")
     cal = _calendar(prices, weights, start, end)
-    lump = simulate(prices, weights, deposits={cal[0]: total}, calendar=cal)
-    part = total / months
-    dca = simulate(prices, weights, deposits={cal[0]: total},
-                   buys={d: part for d in month_starts(cal)[:months]}, calendar=cal)
+    lump = simulate(prices, weights, deposits={cal[0]: total}, calendar=cal, cash_rate=cash_rate)
+    buys = {d: total / months for d in month_starts(cal)[:months]}
+    if len(buys) == months:
+        # simulate() caps a buy at the cash on hand, so this sweeps in the interest
+        buys[max(buys)] = math.inf
+    dca = simulate(prices, weights, deposits={cal[0]: total}, buys=buys, calendar=cal,
+                   cash_rate=cash_rate)
     diff = lump.final_value - dca.final_value
     tol = 1e-9 * total
     return LumpSumVsDca(

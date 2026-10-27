@@ -184,6 +184,74 @@ class TestInputs:
         assert daily_returns(vs) == pytest.approx([0.1, 0.1])
 
 
+def grow(rate, days):
+    """Growth factor of cash at a yearly rate over some calendar days."""
+    return (1 + rate) ** (days / 365.25)
+
+
+class TestCashInterest:
+    def test_off_by_default(self):
+        vs = portfolio_value_series([Holding("A", weight=75), Holding("ZZZ", weight=25)],
+                                    {"A": A}, 1000)
+        assert vs.interest == [0, 0, 0]
+        assert metrics(vs).interest_earned == 0
+
+    def test_fixed_rate_on_cash_with_no_home(self):
+        vs = portfolio_value_series([Holding("A", weight=75), Holding("ZZZ", weight=25)],
+                                    {"A": A}, 1000, cash_rate=0.04)
+        f = grow(0.04, 1)
+        assert vs.cash == pytest.approx([250, 250 * f, 250 * f * f])
+        assert vs.values == pytest.approx([1000, 825 + 250 * f, 907.5 + 250 * f * f])
+        assert vs.interest == pytest.approx([0, 250 * (f - 1), 250 * f * (f - 1)])
+        m = metrics(vs)
+        assert m.interest_earned == pytest.approx(250 * (f * f - 1))
+        assert m.deposited == 1000  # interest is gain, not money put in
+        assert m.gain == pytest.approx(sum(h.gain for h in m.holdings) + m.interest_earned)
+
+    def test_late_starter_buys_with_its_interest(self):
+        days = [D(2024, 1, d) for d in (2, 3, 4, 5)]
+        a = series("A", list(zip(days, [10, 20, 20, 20])))
+        b = series("B", list(zip(days[2:], [5, 10])))
+        vs = portfolio_value_series([Holding("A", weight=50), Holding("B", weight=50)],
+                                    {"A": a, "B": b}, 1000, cash_rate=0.04)
+        f2 = grow(0.04, 2)
+        # B's 500 waits two days, then 500 * f2 buys 100 * f2 units at 5
+        assert vs.cash == pytest.approx([500, 500 * grow(0.04, 1), 0, 0])
+        assert vs.holdings["B"] == pytest.approx([0, 0, 500 * f2, 1000 * f2])
+        m = metrics(vs)
+        hb = m.holdings[1]
+        assert (hb.invested, hb.gain) == (pytest.approx(500 * f2), pytest.approx(500 * f2))
+        assert m.interest_earned == pytest.approx(500 * (f2 - 1))
+        assert m.gain == pytest.approx(500 + 500 * f2 + 500 * (f2 - 1))
+
+    def test_rate_from_yield_series(self):
+        # Yields in percent like ^IRX: 5% from Jan 2, 0% from Jan 3
+        irx = series("^IRX", [(DAYS[0], 5.0), (DAYS[1], 0.0)])
+        vs = portfolio_value_series([Holding("A", weight=75), Holding("ZZZ", weight=25)],
+                                    {"A": A}, 1000, cash_rate=irx)
+        f = grow(0.05, 1)
+        assert vs.cash == pytest.approx([250, 250 * f, 250 * f])
+
+    def test_yield_series_starting_late_earns_nothing_before(self):
+        irx = series("^IRX", [(DAYS[1], 5.0)])
+        vs = portfolio_value_series([Holding("A", weight=75), Holding("ZZZ", weight=25)],
+                                    {"A": A}, 1000, cash_rate=irx)
+        assert vs.cash == pytest.approx([250, 250, 250 * grow(0.05, 1)])
+
+    def test_benchmark_cash_earns_the_same(self):
+        vs = simulate({"A": A}, {"A": 1}, deposits={DAYS[0]: 1000},
+                      buys={DAYS[0]: 500, DAYS[2]: 500}, cash_rate=0.04)
+        spy = series("SPY", list(zip(DAYS, [200, 210, 220])))
+        c = compare_to_benchmark(vs, spy)
+        assert c.benchmark_series.cash == pytest.approx(vs.cash)
+        assert c.benchmark.interest_earned == pytest.approx(500 * (grow(0.04, 2) - 1))
+
+    @pytest.mark.parametrize("rate", [-1, -2, float("nan"), float("inf")])
+    def test_bad_rate(self, rate):
+        with pytest.raises(AnalyticsError):
+            simulate({"A": A}, {"A": 1}, deposits={DAYS[0]: 1000}, cash_rate=rate)
+
+
 class TestBenchmark:
     def test_buy_and_hold_vs_benchmark(self):
         spy = series("SPY", list(zip(DAYS, [200, 210, 220])))

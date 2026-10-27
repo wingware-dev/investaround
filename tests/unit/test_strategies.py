@@ -153,3 +153,30 @@ class TestLumpSumVsDca:
             lump_sum_vs_dca({"A": a}, {"A": 1}, months=0)
         with pytest.raises(AnalyticsError):
             lump_sum_vs_dca({"A": a}, {"A": 1}, start=D(2030, 1, 1))
+
+    def test_waiting_cash_earns_interest(self):
+        # Flat prices, so the only difference is interest on DCA's waiting cash
+        a = series("A", LVD_DAYS, [100, 100, 100, 100])
+        r = lump_sum_vs_dca({"A": a}, {"A": 1}, total=300, months=3, cash_rate=0.05)
+        f = lambda days: 1.05 ** (days / 365.25)  # noqa: E731
+        cash = 200 * f(29) * f(1)  # Jan 2 -> Jan 31 -> Feb 1
+        cash = (cash - 100) * f(29)  # second part bought; Feb 1 -> Mar 1
+        # The last part sweeps in all remaining cash, interest included
+        assert r.dca.series.cash[-1] == pytest.approx(0, abs=1e-9)
+        assert r.dca.metrics.final_value == pytest.approx(200 + cash)
+        assert r.dca.metrics.interest_earned == pytest.approx(cash - 100)
+        assert r.lump.metrics.final_value == pytest.approx(300)
+        assert r.winner == "dca"
+
+
+class TestCashRateKeyword:
+    def test_passed_through(self):
+        a = series("A", JAN_FEB, [100, 200, 200, 200])
+        b = series("B", JAN_FEB[3:], [10])
+        prices, weights = {"A": a, "B": b}, {"A": 50, "B": 50}
+        for r in (buy_and_hold(prices, weights, 1000, cash_rate=0.05),
+                  rebalanced(prices, weights, "monthly", 1000, cash_rate=0.05),
+                  dollar_cost_average(prices, weights, 100, cash_rate=0.05)):
+            m = r.metrics
+            assert m.interest_earned > 0, r.key
+            assert m.gain == pytest.approx(sum(h.gain for h in m.holdings) + m.interest_earned)

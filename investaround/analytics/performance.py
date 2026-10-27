@@ -14,6 +14,11 @@ A symbol with no price yet on the first day "starts late": its share of the
 money waits as cash until its first price, then is invested.  A symbol with
 no prices at all in the range keeps its share as cash throughout.  Both are
 reported on the ValueSeries so the UI can say so.
+
+Uninvested cash earns nothing unless ``cash_rate`` is given: a fixed yearly
+rate as a fraction (0.04 is 4%), or a PriceSeries of yearly yields in percent
+by date, as Yahoo gives them for 13-week T-bills (^IRX).  Interest counts as
+gain, not as money deposited.
 """
 
 from __future__ import annotations
@@ -23,7 +28,7 @@ import math
 import statistics
 from bisect import bisect_left
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ..models import DEFAULT_START_CASH, Holding, PriceSeries
 
@@ -55,6 +60,8 @@ class ValueSeries:
     weights: dict[str, float]  # target weights as fractions summing to 1
     late_starts: dict[str, dt.date]  # symbol -> first date it had a price
     no_data: list[str]  # symbols with no prices at all in the range
+    interest: list[float] = field(default_factory=list)  # interest earned on cash each date
+    cash_rate: float | PriceSeries = 0.0  # as given to simulate()
 
     @property
     def start(self) -> dt.date:
@@ -117,6 +124,7 @@ class Metrics:
     best_year: YearReturn | None  # among full calendar years only
     worst_year: YearReturn | None
     holdings: list[HoldingContribution]
+    interest_earned: float = 0.0  # on cash; gain is this plus the holdings' gains
 
 
 @dataclass(frozen=True)
@@ -195,10 +203,23 @@ def _period(d: dt.date, rebalance: str) -> tuple[int, int]:
     return d.year, 0
 
 
+def _cash_rates(cash_rate: float | PriceSeries, calendar: Sequence[dt.date]) -> list[float] | None:
+    """Yearly rate (fraction) in effect on each calendar date, or None for no interest.
+
+    A yield series is forward-filled; dates before its first yield earn nothing.
+    """
+    if isinstance(cash_rate, PriceSeries):
+        return [y / 100 if y is not None else 0.0 for y in _aligned(cash_rate, calendar, "close")]
+    if not math.isfinite(cash_rate) or cash_rate <= -1:
+        raise AnalyticsError("Cash interest rate must be above -100%")
+    return [cash_rate] * len(calendar) if cash_rate else None
+
+
 def simulate(prices: Mapping[str, PriceSeries], weights: Mapping[str, float], *,
              deposits: Mapping[dt.date, float], buys: Mapping[dt.date, float] | None = None,
              rebalance: str | None = None, start: dt.date | None = None, end: dt.date | None = None,
-             calendar: Sequence[dt.date] | None = None) -> ValueSeries:
+             calendar: Sequence[dt.date] | None = None,
+             cash_rate: float | PriceSeries = 0.0) -> ValueSeries:
     """Run a portfolio over time.
 
     ``deposits``: money added from outside, by date.  ``buys``: money moved
@@ -208,7 +229,9 @@ def simulate(prices: Mapping[str, PriceSeries], weights: Mapping[str, float], *,
     ``rebalance``: one of REBALANCE_PERIODS, to reset the holdings to their
     weights on the first trading day of each new period.  ``calendar``: the
     dates to run on; by default every date any holding has a price on
-    within [start, end].
+    within [start, end].  ``cash_rate``: interest on uninvested cash (see
+    the module docstring), compounded over the calendar days between dates
+    at the rate in effect on the earlier one.
     """
     w = normalize_weights(weights)
     if rebalance is not None and rebalance not in REBALANCE_PERIODS:
@@ -224,6 +247,7 @@ def simulate(prices: Mapping[str, PriceSeries], weights: Mapping[str, float], *,
     buy = list(dep) if buys is None else _on_calendar(buys, calendar)
     if dep[0] <= 0:
         raise AnalyticsError("Nothing is deposited on the first day")
+    rates = _cash_rates(cash_rate, calendar)
 
     units = dict.fromkeys(w, 0.0)
     pending = dict.fromkeys(w, 0.0)  # cash set aside for symbols with no price yet
@@ -232,9 +256,20 @@ def simulate(prices: Mapping[str, PriceSeries], weights: Mapping[str, float], *,
     values: list[float] = []
     cash: list[float] = []
     bought: list[float] = []
+    earned: list[float] = []
     hold: dict[str, list[float]] = {s: [] for s in w}
 
     for i, d in enumerate(calendar):
+        # Interest on cash held since the previous date, set-aside cash included
+        growth = 0.0
+        if rates is not None and i > 0 and rates[i - 1]:
+            growth = (1 + rates[i - 1]) ** ((d - calendar[i - 1]).days / DAYS_PER_YEAR) - 1
+        earned.append((reserve + sum(pending.values())) * growth)
+        if growth:
+            reserve *= 1 + growth
+            for s in pending:
+                pending[s] *= 1 + growth
+
         reserve += dep[i]
 
         # Symbols that just got their first price buy what was set aside
@@ -294,17 +329,20 @@ def simulate(prices: Mapping[str, PriceSeries], weights: Mapping[str, float], *,
 
     return ValueSeries(dates=calendar, values=values, holdings=hold, cash=cash, deposits=dep,
                        buys=bought, prices=px, net_invested=net, weights=w,
-                       late_starts=late_starts, no_data=no_data)
+                       late_starts=late_starts, no_data=no_data, interest=earned,
+                       cash_rate=cash_rate)
 
 
 def portfolio_value_series(holdings: Sequence[Holding], prices: Mapping[str, PriceSeries],
                            start_cash: float = DEFAULT_START_CASH, start: dt.date | None = None,
-                           end: dt.date | None = None) -> ValueSeries:
+                           end: dt.date | None = None, *,
+                           cash_rate: float | PriceSeries = 0.0) -> ValueSeries:
     """Buy & hold of a saved portfolio's holdings.
 
     Weighted holdings split ``start_cash`` by weight on the first day.  Share
     holdings start with that many shares, bought at each symbol's first close
-    in the range, and ``start_cash`` is not used.
+    in the range, and ``start_cash`` is not used.  ``cash_rate`` is interest
+    on money waiting for a late-starting holding, as for simulate().
     """
     if not holdings:
         raise AnalyticsError("No holdings given")
@@ -312,7 +350,8 @@ def portfolio_value_series(holdings: Sequence[Holding], prices: Mapping[str, Pri
         if not start_cash or start_cash <= 0:
             raise AnalyticsError("Starting cash must be above 0")
         return simulate(prices, {h.symbol: h.weight for h in holdings},
-                        deposits={dt.date.min: start_cash}, start=start, end=end)
+                        deposits={dt.date.min: start_cash}, start=start, end=end,
+                        cash_rate=cash_rate)
     if not all(h.shares is not None for h in holdings):
         raise AnalyticsError("Use weights for every holding or share counts for every holding")
 
@@ -328,7 +367,8 @@ def portfolio_value_series(holdings: Sequence[Holding], prices: Mapping[str, Pri
             cost[h.symbol] = h.shares * first_close
     if not cost:
         raise AnalyticsError("No prices in that date range")
-    vs = simulate(prices, cost, deposits={dt.date.min: sum(cost.values())}, calendar=calendar)
+    vs = simulate(prices, cost, deposits={dt.date.min: sum(cost.values())}, calendar=calendar,
+                  cash_rate=cash_rate)
     vs.no_data.extend(unpriced)
     return vs
 
@@ -417,15 +457,15 @@ def metrics(vs: ValueSeries) -> Metrics:
         max_drawdown=max_drawdown(vs.dates, idx), yearly=yearly,
         best_year=max(full, key=lambda y: y.ret) if full else None,
         worst_year=min(full, key=lambda y: y.ret) if full else None,
-        holdings=holdings)
+        holdings=holdings, interest_earned=sum(vs.interest))
 
 
 def benchmark_series(vs: ValueSeries, benchmark: PriceSeries) -> ValueSeries:
     """What the same money, put in on the same days, would have done in the
-    benchmark alone."""
+    benchmark alone, with cash waiting to be invested earning the same rate."""
     bs = simulate({benchmark.symbol: benchmark}, {benchmark.symbol: 1.0},
                   deposits=dict(zip(vs.dates, vs.deposits)), buys=dict(zip(vs.dates, vs.buys)),
-                  calendar=vs.dates)
+                  calendar=vs.dates, cash_rate=vs.cash_rate)
     if bs.no_data:
         raise AnalyticsError(f"No {benchmark.symbol} prices in that date range")
     return bs
