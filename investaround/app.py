@@ -27,8 +27,7 @@ log = logging.getLogger(__name__)
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# Step 3 (Yahoo source) changes this to "yahoo" once YahooPriceSource exists.
-DEFAULT_PRICE_SOURCE = "fake"
+DEFAULT_PRICE_SOURCE = "yahoo"
 
 NAV = [
     ("home.index", "Home"),
@@ -46,9 +45,10 @@ def _make_fake(app: Flask) -> PriceSource:
 
 
 def _make_yahoo(app: Flask) -> PriceSource:
-    # HOOK for step 3: build YahooPriceSource wrapped in CachingPriceSource
-    # (cache under app.config["DATA_DIR"]) and return it here.
-    raise PriceSourceError("The Yahoo price source is not available yet; use INVESTAROUND_PRICE_SOURCE=fake")
+    from .prices.cache import CachingPriceSource
+    from .prices.yahoo import YahooPriceSource
+
+    return CachingPriceSource(YahooPriceSource(), Path(app.config["DATA_DIR"]) / "prices.sqlite")
 
 
 PRICE_SOURCE_FACTORIES: dict[str, Callable[[Flask], PriceSource]] = {
