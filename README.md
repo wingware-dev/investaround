@@ -48,6 +48,8 @@ When it was done, these two requests got it running from Wing:
 Before publishing, the price data the agents had recorded from Yahoo
 Finance for the tests was replaced with made-up sample prices, so this
 repository ships no market data, and it was removed from the history.
+So the commits the trail links to have no price data, their tests use
+the sample prices, and their screenshots are the final ones.
 
 [run-trail/RUN.md](run-trail/RUN.md) is the run's full trail: every
 task with its prompt, the questions and who answered them, the judgement

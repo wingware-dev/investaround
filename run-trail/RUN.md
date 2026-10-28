@@ -2,6 +2,8 @@
 
 Generated 2026-10-28 12:21 from Wing's task store, the Tasks Manager's log, the agents' transcripts and the repository.  Times are local (-04:00).
 
+Before publishing, the price data the agents recorded from Yahoo Finance for the tests was replaced with made-up sample prices and removed from the history, so this repository ships no market data.  The commits linked below therefore have no price data, their tests use the sample prices, and their screenshots are the final ones.
+
 ## Totals
 
 | | Time | Input | Output | Cache read | Cache write |
