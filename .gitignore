@@ -36,3 +36,8 @@ htmlcov/
 
 # investaround user data: portfolios.json and the price cache
 /data/
+
+# Wing's generated agent guide, and local notes
+AGENTS.md
+run-notes.txt
+.DS_Store

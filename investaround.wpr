@@ -11,6 +11,7 @@ proj.directory-list = [{'dirloc': loc('.'),
                         'recursive': True,
                         'watch_for_changes': True}]
 proj.file-type = 'shared'
+proj.main-file = loc('run_investaround.py')
 testing.auto-discover = True
 testing.excluded-test-file-specs = (('glob',
                                      'site-packages/'),)

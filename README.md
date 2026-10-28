@@ -9,6 +9,52 @@ needed anywhere.
 
 ![Home dashboard](docs/shots/50-home-dashboard.png)
 
+## How it was built
+
+AI agents (Claude Code) wrote all of investaround from one prompt,
+working inside Wing Pro 12.1, a Python IDE from
+[Wingware](https://wingware.com/).  Wing's Tasks Manager is itself an AI
+agent: it turns a request into a queue of tasks, gives each to a
+separate coding agent, answers their questions, checks and commits their
+work, and starts the next.  The prompt was written the way a new
+investor who doesn't program might ask, without naming a data source, a
+web framework or how to test it.  The agents chose those, and planned,
+built and tested the app, up to four tasks at a time.  The run took
+about an hour on October 27, 2026, from 3:19 pm to 4:13 pm, including
+two follow-up requests, and made 19 tasks and 17 commits.
+
+This was the prompt that started it:
+
+> I'm new to investing and want some software so I can try it out by
+> just picking investments without actually buying them and watching
+> them over time, both in current values day to day and by setting the
+> date range to see how they would have done in the past. I would pick
+> around 5-20 investments, and would be useful to have some way of
+> seeing examples to work from. I'm hoping to do this with real
+> investments and prices from somewhere free where I don't need an
+> account.  Anything else that would help a new investor to try and
+> understand common strategies would also be great.
+>
+> Commit a screenshot of each major visible change under docs/shots/
+> since we'll be creating a publishable trace of this run later.
+
+When it was done, these two requests got it running from Wing:
+
+> How do I run this?  Can you set the main entry point in Wing?
+
+> Running in Wing doesn't work: [...] ImportError: attempted relative
+> import with no known parent package
+
+Before publishing, the price data the agents had recorded from Yahoo
+Finance for the tests was replaced with made-up sample prices, so this
+repository ships no market data, and it was removed from the history.
+
+[run-trail/RUN.md](run-trail/RUN.md) is the run's full trail: every
+task with its prompt, the questions and who answered them, the judgement
+calls, the commits and screenshots, and the time and tokens each used,
+followed by what went wrong along the way.
+[run-trail/trail.json](run-trail/trail.json) has the same data.
+
 ## What's in it
 
 - **Home**: all your portfolios with today's change and a 3-month
@@ -111,3 +157,9 @@ wherever `--data-dir` points:
 
 `tools/generate_fixtures.py` writes the sample prices; the same seed
 always writes the same files.
+
+## License
+
+MIT; see [LICENSE](LICENSE).  Prices fetched from Yahoo Finance while
+the app runs are not part of this repository and are subject to Yahoo's
+terms.
