@@ -1,0 +1,3167 @@
+{
+ "generated_at": "2026-10-28T12:21:40-04:00",
+ "window": {
+  "start": "2026-10-27T15:19:25-04:00",
+  "end": "2026-10-27T16:20:00-04:00"
+ },
+ "selection": {
+  "tasks": [],
+  "goal": "",
+  "since": "",
+  "until": "2026-10-27 16:20",
+  "shots": "docs/shots"
+ },
+ "tasks": [
+  {
+   "id": "691d1322-db8c-4084-8c23-16c0ec298739",
+   "label": "T1",
+   "name": "new-investing-want-software",
+   "ref": "T1 new-investing-want-software",
+   "goal": "Ungrouped Tasks",
+   "prompt": "I'm new to investing and want some software so I can try it out by just picking\ninvestments without actually buying them and watching them over time, both in\ncurrent values day to day and by setting the date range to see how they would\nhave done in the past. I would pick around 5-20 investments, and would be useful\nto have some way of seeing examples to work from. I'm hoping to do this with\nreal investments and prices from somewhere free where I don't need an account.\nAnything else that would help a new investor to try and understand common\nstrategies would also be great.\n\nCommit a screenshot of each major visible change under docs/shots/ since we'll\nbe creating a publishable trace of this run later.\n\n[Tasks Manager, 2026-10-27 15:20] Manager: the project is empty apart from .venv and an empty requirements.txt, so plan this before building it. Pick a free price source that needs no account or API key, and check it really works for both daily current prices and historical ranges. Plan the app's form (for example a local web or desktop app) and how its pieces fit. Order the steps so they can run side by side where possible: shared data/model contracts come first, then features in their own files. Each step should say which files it owns and which it shares. Include early a harness that drives the UI as a user would (invariant 12) and that also captures the docs/shots/ screenshots the task asks for. Tests must use stand-ins for the network, not live calls.\n\nSee <project>/.TASKS/notes/i-m-new-to-investing-and-want-some-software-so-i-can-try.md",
+   "origin": "Written by the user",
+   "state": "finished",
+   "started_at": "2026-10-27T15:20:25-04:00",
+   "completed_at": "2026-10-27T15:52:39-04:00",
+   "wall_time_secs": 164,
+   "outcome": "done",
+   "summary": "Planned \"investaround\", a local Flask web app for practice investing with no real money. It covers paper portfolios of 5-20 holdings with daily values, past-performance tests over any date range, example portfolios, and a strategies lab, using Yahoo Finance's keyless chart and search endpoints, which I checked live.\n- 9 steps: contracts and app skeleton first, then a UI and screenshot harness, a price source, an analytics engine, and four feature pages in their own files, then integration.\n- Tests use a fake price source fed by recorded real prices, so no test touches the network.",
+   "reports": [
+    {
+     "at": "2026-10-27T15:22:54-04:00",
+     "status": "done",
+     "summary": "Planned \"investaround\", a local Flask web app for practice investing with no real money. It covers paper portfolios of 5-20 holdings with daily values, past-performance tests over any date range, example portfolios, and a strategies lab, using Yahoo Finance's keyless chart and search endpoints, which I checked live.\n- 9 steps: contracts and app skeleton first, then a UI and screenshot harness, a price source, an analytics engine, and four feature pages in their own files, then integration.\n- Tests use a fake price source fed by recorded real prices, so no test touches the network.",
+     "judgement_calls": [
+      {
+       "decision": "Price source: Yahoo Finance's public chart and search endpoints, no key or account",
+       "why": "Checked live on 2026-10-27 with plain GET requests and an honest app User-Agent (\"investaround/0.1\"). Current quote, previous close and 26 years of daily SPY history (6,743 bars, adjusted close, 108 dividends) all came back in one call each. Stocks, ETFs (VOO), mutual funds (VTSAX) and crypto (BTC-USD) all worked, and search works too. Risks: the endpoint is unofficial with no SLA, it is meant for personal use, and it can rate-limit. The app caches everything in SQLite, fetches each symbol at most once per refresh, sends an honest UA, and shows a clear 'data unavailable' message when a fetch fails.",
+       "alternatives": [
+        "Stooq CSV: now sits behind a JavaScript proof-of-work bot check, so it is unusable",
+        "Twelve Data / Alpha Vantage / FMP / Tiingo: reliable, but each needs a free account and API key, which the user ruled out",
+        "FRED fredgraph.csv: keyless but only has indexes, no individual stocks or funds, and it timed out from here",
+        "Nasdaq's api.nasdaq.com: only works when imitating a browser, so I didn't pursue it"
+       ]
+      },
+      {
+       "decision": "Form: local Flask web app in the browser, with Chart.js vendored",
+       "why": "Charts and date pickers come for free, Playwright can drive it headless for invariant 12 and the screenshots, and it needs no desktop GUI toolkit on Python 3.14.",
+       "alternatives": [
+        "Streamlit: quicker to start but harder to drive and test precisely",
+        "Desktop app with Qt: heavier, and screenshot automation is more fiddly"
+       ]
+      },
+      {
+       "decision": "Tests and screenshots use recorded real prices, frozen at a fixed 'today'",
+       "why": "No network in tests, as the Manager asked. Screenshots still show real tickers and real history, and they are deterministic.",
+       "alternatives": [
+        "Synthetic prices: unrealistic screenshots",
+        "Live screenshots: they change from run to run and depend on the network"
+       ]
+      },
+      {
+       "decision": "Feature stubs and the nav are created in step 1, so feature steps never edit shared files",
+       "why": "Lets steps 5-8 run side by side.",
+       "alternatives": [
+        "Each feature registers itself in a shared list, which would serialize the steps"
+       ]
+      },
+      {
+       "decision": "Harness uses the installed Google Chrome (Playwright channel=\"chrome\") and falls back to Playwright's own Chromium",
+       "why": "Chrome is already installed, which avoids a ~150 MB browser download on this machine. Elsewhere it falls back to `playwright install chromium`.",
+       "alternatives": [
+        "Always download Playwright Chromium"
+       ]
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [
+    {
+     "at": "2026-10-27T15:23:21-04:00",
+     "question_ids": [],
+     "note": "Suggested: accept. The plan builds a local web app that runs in your browser and has 9 steps, several of which run side by side. Two choices are worth checking before you accept. (1) Prices come from Yahoo Finance's public chart and search endpoints. These need no account, but they are unofficial, so the app caches results and keeps the source swappable. Other free sources either needed a key or blocked scripted access. (2) Step 1 makes one live download of real price history for about 15 symbols, to use as test data; tests never go to the network after that. Once you accept, I'll file the steps as tasks and run them, committing each one."
+    }
+   ],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "Price source: Yahoo Finance's public chart and search endpoints, no key or account",
+     "why": "Checked live on 2026-10-27 with plain GET requests and an honest app User-Agent (\"investaround/0.1\"). Current quote, previous close and 26 years of daily SPY history (6,743 bars, adjusted close, 108 dividends) all came back in one call each. Stocks, ETFs (VOO), mutual funds (VTSAX) and crypto (BTC-USD) all worked, and search works too. Risks: the endpoint is unofficial with no SLA, it is meant for personal use, and it can rate-limit. The app caches everything in SQLite, fetches each symbol at most once per refresh, sends an honest UA, and shows a clear 'data unavailable' message when a fetch fails.",
+     "alternatives": [
+      "Stooq CSV: now sits behind a JavaScript proof-of-work bot check, so it is unusable",
+      "Twelve Data / Alpha Vantage / FMP / Tiingo: reliable, but each needs a free account and API key, which the user ruled out",
+      "FRED fredgraph.csv: keyless but only has indexes, no individual stocks or funds, and it timed out from here",
+      "Nasdaq's api.nasdaq.com: only works when imitating a browser, so I didn't pursue it"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Form: local Flask web app in the browser, with Chart.js vendored",
+     "why": "Charts and date pickers come for free, Playwright can drive it headless for invariant 12 and the screenshots, and it needs no desktop GUI toolkit on Python 3.14.",
+     "alternatives": [
+      "Streamlit: quicker to start but harder to drive and test precisely",
+      "Desktop app with Qt: heavier, and screenshot automation is more fiddly"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Tests and screenshots use recorded real prices, frozen at a fixed 'today'",
+     "why": "No network in tests, as the Manager asked. Screenshots still show real tickers and real history, and they are deterministic.",
+     "alternatives": [
+      "Synthetic prices: unrealistic screenshots",
+      "Live screenshots: they change from run to run and depend on the network"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Feature stubs and the nav are created in step 1, so feature steps never edit shared files",
+     "why": "Lets steps 5-8 run side by side.",
+     "alternatives": [
+      "Each feature registers itself in a shared list, which would serialize the steps"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Harness uses the installed Google Chrome (Playwright channel=\"chrome\") and falls back to Playwright's own Chromium",
+     "why": "Chrome is already installed, which avoids a ~150 MB browser download on this machine. Elsewhere it falls back to `playwright install chromium`.",
+     "alternatives": [
+      "Always download Playwright Chromium"
+     ]
+    }
+   ],
+   "findings": [],
+   "commits": [],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "291a333d"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 14433,
+    "output": 14878,
+    "cache_read": 370594,
+    "cache_write": 54035,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 24,
+      "output": 13825,
+      "cache_read": 370594,
+      "cache_write_5m": 0,
+      "cache_write_1h": 54035,
+      "web_searches": 0
+     },
+     "claude-haiku-5-5": {
+      "input": 14409,
+      "output": 1053,
+      "cache_read": 0,
+      "cache_write_5m": 0,
+      "cache_write_1h": 0,
+      "web_searches": 1
+     }
+    },
+    "unpriced": []
+   },
+   "shots": []
+  },
+  {
+   "id": "9fa9251e-0993-4eb4-96b6-a92f29814895",
+   "label": "T2",
+   "name": "app-foundation",
+   "ref": "T2 app-foundation",
+   "goal": "Paper investing app",
+   "prompt": "Paper investing app step 1: foundation, contracts and app skeleton\n\nFrom the accepted plan of T1 new-investing-want-software (691d1322); full design in .TASKS/notes/i-m-new-to-investing-and-want-some-software-so-i-can-try.md (Design section).\n\nCreates the package layout with models, the PriceSource protocol, FakePriceSource, PortfolioStore and the Flask app factory. It also adds base.html with the full nav, CSS, vendored Chart.js, and stub blueprints and templates for every feature (home, portfolios, history, examples, learn), so later steps never touch shared files. Adds tools/record_fixtures.py and runs it once (live, developer-run, read-only GETs to Yahoo with the honest UA) to record tests/fixtures/prices for about 15 symbols: SPY, VOO, VTI, VXUS, BND, QQQ, VNQ, GLD, AAPL, MSFT, JNJ, KO, AMZN, NVDA, VTSAX. Also adds requirements.txt, data/ to .gitignore, and unit tests for models, storage and the fake source.\nOwns: investaround/{__init__,__main__,app,models,storage}.py, prices/{base,fake}.py, web/*.py stubs, templates/base.html + stubs, static/css, static/vendor, tools/record_fixtures.py, tests/fixtures, tests/unit/test_{models,storage,fake_source}.py. Shares: requirements.txt, .gitignore.\n\nManager: put every dependency the plan names in requirements.txt now, dev ones included (flask, httpx, pytest, playwright), and install them in .venv. Steps 2-4 then run side by side and need not touch it. Leave app.py with a clear hook where step 3 plugs in the yahoo source. Commit a screenshot of each major visible change under docs/shots/ (the user wants a publishable trace).\n\nSee <project>/.TASKS/notes/paper-investing-app-step-1-foundation-contracts-and-app.md",
+   "origin": "Filed by the Tasks Manager from the plan of T1 new-investing-want-software, at the user's request",
+   "state": "needs-review",
+   "started_at": "2026-10-27T15:24:29-04:00",
+   "completed_at": "2026-10-27T15:30:40-04:00",
+   "wall_time_secs": 371.0,
+   "outcome": "done",
+   "summary": "Paper-investing app foundation: package skeleton, contracts, recorded price fixtures and the stub UI for every feature.\n- `models.py` (Holding/Portfolio with 1-20 holdings validation and an under-5 warning, Quote, PriceBar, PriceSeries, SearchHit), `storage.py` (PortfolioStore: JSON with atomic writes), `prices/base.py` (PriceSource Protocol, PriceSourceError, UnknownSymbol), `prices/fake.py` (FakePriceSource over the fixtures, frozen today, search, injectable failures)\n- `app.py` factory with get_store()/get_prices(), 404 and price-error pages, and a `_make_yahoo` hook plus `DEFAULT_PRICE_SOURCE` for step 3; `python -m investaround` runs the server and opens a browser\n- base.html with full nav, footer disclaimer, shared CSS and vendored Chart.js 4.4.6; stub blueprints and templates for home, portfolios, history, examples and learn\n- tools/record_fixtures.py, run once live: tests/fixtures/prices holds 15 symbols, 2005 (or listing date) to 2026-10-27, plus quotes.json\n- requirements.txt (flask, httpx, pytest, playwright, installed in .venv), pyproject.toml (pytest config), `/data/` in .gitignore, 55 unit tests (models, storage, fake source, app) all passing, screenshot docs/shots/00-app-skeleton.png",
+   "reports": [
+    {
+     "at": "2026-10-27T15:30:17-04:00",
+     "status": "done",
+     "summary": "Paper-investing app foundation: package skeleton, contracts, recorded price fixtures and the stub UI for every feature.\n- `models.py` (Holding/Portfolio with 1-20 holdings validation and an under-5 warning, Quote, PriceBar, PriceSeries, SearchHit), `storage.py` (PortfolioStore: JSON with atomic writes), `prices/base.py` (PriceSource Protocol, PriceSourceError, UnknownSymbol), `prices/fake.py` (FakePriceSource over the fixtures, frozen today, search, injectable failures)\n- `app.py` factory with get_store()/get_prices(), 404 and price-error pages, and a `_make_yahoo` hook plus `DEFAULT_PRICE_SOURCE` for step 3; `python -m investaround` runs the server and opens a browser\n- base.html with full nav, footer disclaimer, shared CSS and vendored Chart.js 4.4.6; stub blueprints and templates for home, portfolios, history, examples and learn\n- tools/record_fixtures.py, run once live: tests/fixtures/prices holds 15 symbols, 2005 (or listing date) to 2026-10-27, plus quotes.json\n- requirements.txt (flask, httpx, pytest, playwright, installed in .venv), pyproject.toml (pytest config), `/data/` in .gitignore, 55 unit tests (models, storage, fake source, app) all passing, screenshot docs/shots/00-app-skeleton.png",
+     "judgement_calls": [
+      {
+       "decision": "Set the Wing project's test framework to pytest and excluded site-packages/ from test discovery",
+       "why": "The plan's tests and harness are pytest-based, and Wing's unittest runner couldn't import the package; the venv lives inside the project.",
+       "alternatives": [
+        "Write unittest-style tests and keep the unittest framework"
+       ]
+      },
+      {
+       "decision": "Default price source stays 'fake' until step 3 switches DEFAULT_PRICE_SOURCE to 'yahoo'",
+       "why": "No Yahoo source exists yet. Choosing yahoo now would make the app fail to start.",
+       "alternatives": [
+        "Default to yahoo and raise until step 3 lands"
+       ]
+      },
+      {
+       "decision": "Named the screenshot docs/shots/00-app-skeleton.png",
+       "why": "Step 2 owns docs/shots/01-*, so 00 avoids a collision while still leaving a trace of this step.",
+       "alternatives": [
+        "Leave screenshots entirely to step 2"
+       ]
+      },
+      {
+       "decision": "Added pyproject.toml, prices/__init__.py, templates/error.html and tests/unit/test_app.py beyond the Owns list",
+       "why": "pytest needs the import path, the error pages need a template, and the app factory deserved its own tests. None of these files is claimed by another step.",
+       "alternatives": [
+        "Put pytest config in a root conftest.py"
+       ]
+      },
+      {
+       "decision": "Chart.js is loaded on every page from base.html, and pages add their JS in a `scripts` block",
+       "why": "This keeps later steps from having to touch base.html. The file is about 200 KB and served locally.",
+       "alternatives": [
+        "Each page includes Chart.js itself"
+       ]
+      },
+      {
+       "decision": "Server listens on port 8765 by default, not 5000",
+       "why": "macOS AirPlay Receiver often holds port 5000.",
+       "alternatives": [
+        "5000"
+       ]
+      }
+     ],
+     "verdict": null
+    },
+    {
+     "at": "2026-10-27T15:30:31-04:00",
+     "status": "done",
+     "summary": "Paper-investing app foundation: package skeleton, contracts, recorded price fixtures and the stub UI for every feature.\n- `models.py` (Holding/Portfolio with 1-20 holdings validation and an under-5 warning, Quote, PriceBar, PriceSeries, SearchHit), `storage.py` (PortfolioStore: JSON with atomic writes), `prices/base.py` (PriceSource Protocol, PriceSourceError, UnknownSymbol), `prices/fake.py` (FakePriceSource over the fixtures, frozen today, search, injectable failures)\n- `app.py` factory with get_store()/get_prices(), 404 and price-error pages, and a `_make_yahoo` hook plus `DEFAULT_PRICE_SOURCE` for step 3; `python -m investaround` runs the server and opens a browser\n- base.html with full nav, footer disclaimer, shared CSS and vendored Chart.js 4.4.6; stub blueprints and templates for home, portfolios, history, examples and learn\n- tools/record_fixtures.py, run once live: tests/fixtures/prices holds 15 symbols, 2005 (or listing date) to 2026-10-27, plus quotes.json\n- requirements.txt (flask, httpx, pytest, playwright, installed in .venv), pyproject.toml (pytest config), `/data/` in .gitignore, 55 unit tests (models, storage, fake source, app) all passing, screenshot docs/shots/00-app-skeleton.png",
+     "judgement_calls": [
+      {
+       "decision": "Set the Wing project's test framework to pytest and excluded site-packages/ from test discovery",
+       "why": "The plan's tests and harness are pytest-based, and Wing's unittest runner couldn't import the package; the venv lives inside the project.",
+       "alternatives": [
+        "Write unittest-style tests and keep the unittest framework"
+       ]
+      },
+      {
+       "decision": "Default price source stays 'fake' until step 3 switches DEFAULT_PRICE_SOURCE to 'yahoo'",
+       "why": "No Yahoo source exists yet. Choosing yahoo now would make the app fail to start.",
+       "alternatives": [
+        "Default to yahoo and raise until step 3 lands"
+       ]
+      },
+      {
+       "decision": "Named the screenshot docs/shots/00-app-skeleton.png",
+       "why": "Step 2 owns docs/shots/01-*, so 00 avoids a collision while still leaving a trace of this step.",
+       "alternatives": [
+        "Leave screenshots entirely to step 2"
+       ]
+      },
+      {
+       "decision": "Added pyproject.toml, prices/__init__.py, templates/error.html and tests/unit/test_app.py beyond the Owns list",
+       "why": "pytest needs the import path, the error pages need a template, and the app factory deserved its own tests. None of these files is claimed by another step.",
+       "alternatives": [
+        "Put pytest config in a root conftest.py"
+       ]
+      },
+      {
+       "decision": "Chart.js is loaded on every page from base.html, and pages add their JS in a `scripts` block",
+       "why": "This keeps later steps from having to touch base.html. The file is about 200 KB and served locally.",
+       "alternatives": [
+        "Each page includes Chart.js itself"
+       ]
+      },
+      {
+       "decision": "Server listens on port 8765 by default, not 5000",
+       "why": "macOS AirPlay Receiver often holds port 5000.",
+       "alternatives": [
+        "5000"
+       ]
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "Set the Wing project's test framework to pytest and excluded site-packages/ from test discovery",
+     "why": "The plan's tests and harness are pytest-based, and Wing's unittest runner couldn't import the package; the venv lives inside the project.",
+     "alternatives": [
+      "Write unittest-style tests and keep the unittest framework"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Default price source stays 'fake' until step 3 switches DEFAULT_PRICE_SOURCE to 'yahoo'",
+     "why": "No Yahoo source exists yet. Choosing yahoo now would make the app fail to start.",
+     "alternatives": [
+      "Default to yahoo and raise until step 3 lands"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Named the screenshot docs/shots/00-app-skeleton.png",
+     "why": "Step 2 owns docs/shots/01-*, so 00 avoids a collision while still leaving a trace of this step.",
+     "alternatives": [
+      "Leave screenshots entirely to step 2"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Added pyproject.toml, prices/__init__.py, templates/error.html and tests/unit/test_app.py beyond the Owns list",
+     "why": "pytest needs the import path, the error pages need a template, and the app factory deserved its own tests. None of these files is claimed by another step.",
+     "alternatives": [
+      "Put pytest config in a root conftest.py"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Chart.js is loaded on every page from base.html, and pages add their JS in a `scripts` block",
+     "why": "This keeps later steps from having to touch base.html. The file is about 200 KB and served locally.",
+     "alternatives": [
+      "Each page includes Chart.js itself"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Server listens on port 8765 by default, not 5000",
+     "why": "macOS AirPlay Receiver often holds port 5000.",
+     "alternatives": [
+      "5000"
+     ]
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "d10a3b63de43",
+     "hash": "d10a3b63de43a3f22a6c20a23eaf929f914d0a4f",
+     "date": "2026-10-27T15:31:02-04:00",
+     "subject": "Add paper-investing app foundation: models, storage, price sources, app skeleton",
+     "url": "https://github.com/wingware-dev/investaround/commit/d10a3b63de43a3f22a6c20a23eaf929f914d0a4f",
+     "tasks": [
+      "T2 app-foundation"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "6b6d9cd9"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 82,
+    "output": 36088,
+    "cache_read": 2307813,
+    "cache_write": 78443,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 82,
+      "output": 36088,
+      "cache_read": 2307813,
+      "cache_write_5m": 0,
+      "cache_write_1h": 78443,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": [
+    {
+     "path": "docs/shots/00-app-skeleton.png",
+     "revision": "d10a3b63de43",
+     "link": "https://github.com/wingware-dev/investaround/raw/d10a3b63de43a3f22a6c20a23eaf929f914d0a4f/docs/shots/00-app-skeleton.png"
+    }
+   ]
+  },
+  {
+   "id": "ea97e03c-f7a2-46bb-8cea-f3383f65afa9",
+   "label": "T4",
+   "name": "yahoo-price-source",
+   "ref": "T4 yahoo-price-source",
+   "goal": "Paper investing app",
+   "prompt": "Paper investing app step 3: Yahoo price source and cache\n\nFrom the accepted plan of T1 new-investing-want-software (691d1322); full design in .TASKS/notes/i-m-new-to-investing-and-want-some-software-so-i-can-try.md (Findings section has the endpoints). Runs after step 1 app-foundation, side by side with steps 2 and 4.\n\nAdds YahooPriceSource, which parses chart/search JSON, handles errors, 429s and missing data, and sends an honest UA. Adds CachingPriceSource (SQLite) and wires app.py to choose yahoo by default. Tests feed recorded JSON responses through an injected fake transport, with no live calls; they cover rate limits, an unknown symbol, gaps and holidays.\nOwns: prices/{yahoo,cache}.py, tests/unit/test_{yahoo,cache}.py, tests/fixtures/yahoo/*.json. Shares: app.py (source selection, a few lines).\n\n[Tasks Manager, 2026-10-27 15:30] Manager, from T2 app-foundation (9fa9251e): in investaround/app.py, implement `_make_yahoo(app)` to return CachingPriceSource(YahooPriceSource(...)) with the cache under app.config['DATA_DIR'], and set DEFAULT_PRICE_SOURCE = 'yahoo'. Nothing else in app.py needs to change. Note that T3 and T5 run beside you on other files.\n\nSee <project>/.TASKS/notes/paper-investing-app-step-3-yahoo-price-source-and-cache.md",
+   "origin": "Filed by the Tasks Manager from the plan of T1 new-investing-want-software, at the user's request",
+   "state": "finished",
+   "started_at": "2026-10-27T15:31:08-04:00",
+   "completed_at": "2026-10-27T15:37:13-04:00",
+   "wall_time_secs": 351,
+   "outcome": "done",
+   "summary": "Added the Yahoo price source and SQLite cache, and made Yahoo the app's default price source.\n- `prices/yahoo.py`: YahooPriceSource parses chart and search JSON and sends the honest UA with a polite gap between requests. A 429 becomes `RateLimited`, a 404 becomes `UnknownSymbol`, and a range before a fund existed (Yahoo's 400 \"Data doesn't exist\") gives an empty series. Network, 5xx, non-JSON and other 4xx replies become `PriceSourceError`. Null rows (holidays, a fund's unpriced today) are skipped.\n- `prices/cache.py`: CachingPriceSource keeps daily bars for good and fetches only the missing head or tail of a range. Today's bar is re-fetched after 15 minutes. Cached adjusted closes are rescaled when Yahoo re-bases them after a dividend. Quotes are cached for 15 minutes and searches for a day, and cached data is served when the source fails.\n- `app.py`: `_make_yahoo` returns CachingPriceSource(YahooPriceSource()) with the cache at `<DATA_DIR>/prices.sqlite`, and DEFAULT_PRICE_SOURCE is now \"yahoo\"\n- Recorded Yahoo replies in tests/fixtures/yahoo (plus a hand-written 429) and `tools/record_yahoo_fixtures.py` to refresh them; 52 new tests in test_yahoo.py and test_cache.py, none live",
+   "reports": [
+    {
+     "at": "2026-10-27T15:36:47-04:00",
+     "status": "done",
+     "summary": "Added the Yahoo price source and SQLite cache, and made Yahoo the app's default price source.\n- `prices/yahoo.py`: YahooPriceSource parses chart and search JSON and sends the honest UA with a polite gap between requests. A 429 becomes `RateLimited`, a 404 becomes `UnknownSymbol`, and a range before a fund existed (Yahoo's 400 \"Data doesn't exist\") gives an empty series. Network, 5xx, non-JSON and other 4xx replies become `PriceSourceError`. Null rows (holidays, a fund's unpriced today) are skipped.\n- `prices/cache.py`: CachingPriceSource keeps daily bars for good and fetches only the missing head or tail of a range. Today's bar is re-fetched after 15 minutes. Cached adjusted closes are rescaled when Yahoo re-bases them after a dividend. Quotes are cached for 15 minutes and searches for a day, and cached data is served when the source fails.\n- `app.py`: `_make_yahoo` returns CachingPriceSource(YahooPriceSource()) with the cache at `<DATA_DIR>/prices.sqlite`, and DEFAULT_PRICE_SOURCE is now \"yahoo\"\n- Recorded Yahoo replies in tests/fixtures/yahoo (plus a hand-written 429) and `tools/record_yahoo_fixtures.py` to refresh them; 52 new tests in test_yahoo.py and test_cache.py, none live",
+     "judgement_calls": [
+      {
+       "decision": "Recorded the Yahoo test fixtures live: 8 read-only GETs, plus 3 for a manual check through the app",
+       "why": "The task asks for tests on recorded JSON responses, and only real replies show the actual shapes. Doing so turned up two behaviours a hand-made fixture would have got wrong: a range before a fund existed returns HTTP 400 'Data doesn't exist', not empty data, and a mutual fund's today row has a null close. The plan said step 1's recording would be the only live use; these calls were free, keyless, and used the same honest UA.",
+       "alternatives": [
+        "Hand-write every fixture without touching the network"
+       ]
+      },
+      {
+       "decision": "Added tools/record_yahoo_fixtures.py, a file the task didn't list",
+       "why": "So the recorded replies can be refreshed the same way step 1's prices can. No other step claims it.",
+       "alternatives": [
+        "Keep the capture script out of the repo"
+       ]
+      },
+      {
+       "decision": "Cache keeps one continuous date range per symbol and fills any gap between old and new requests",
+       "why": "This keeps the bookkeeping simple and correct. The cost is a larger one-off fetch when a request lands far from what is cached.",
+       "alternatives": [
+        "Track several separate ranges per symbol"
+       ]
+      },
+      {
+       "decision": "Cache rescales stored adjusted closes when an overlap day differs",
+       "why": "Yahoo re-bases every past adjclose after each dividend. Without rescaling, a series stitched from old and new fetches would jump at the join and skew total-return figures.",
+       "alternatives": [
+        "Re-fetch full history on every extension",
+        "Ignore the drift"
+       ]
+      },
+      {
+       "decision": "Cache serves stale quotes, bars and searches, with a logged warning, when Yahoo fails",
+       "why": "The design says to degrade gracefully. Pages keep working offline or when rate limited, and errors surface only when nothing is cached.",
+       "alternatives": [
+        "Always raise so the page shows the error banner"
+       ]
+      },
+      {
+       "decision": "A quote's previous close comes from the daily bars, not meta.chartPreviousClose",
+       "why": "With range=5d, chartPreviousClose is the close before the 5-day window, so today's change would have been wrong.",
+       "alternatives": [
+        "Use meta.chartPreviousClose"
+       ]
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "Recorded the Yahoo test fixtures live: 8 read-only GETs, plus 3 for a manual check through the app",
+     "why": "The task asks for tests on recorded JSON responses, and only real replies show the actual shapes. Doing so turned up two behaviours a hand-made fixture would have got wrong: a range before a fund existed returns HTTP 400 'Data doesn't exist', not empty data, and a mutual fund's today row has a null close. The plan said step 1's recording would be the only live use; these calls were free, keyless, and used the same honest UA.",
+     "alternatives": [
+      "Hand-write every fixture without touching the network"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Added tools/record_yahoo_fixtures.py, a file the task didn't list",
+     "why": "So the recorded replies can be refreshed the same way step 1's prices can. No other step claims it.",
+     "alternatives": [
+      "Keep the capture script out of the repo"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Cache keeps one continuous date range per symbol and fills any gap between old and new requests",
+     "why": "This keeps the bookkeeping simple and correct. The cost is a larger one-off fetch when a request lands far from what is cached.",
+     "alternatives": [
+      "Track several separate ranges per symbol"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Cache rescales stored adjusted closes when an overlap day differs",
+     "why": "Yahoo re-bases every past adjclose after each dividend. Without rescaling, a series stitched from old and new fetches would jump at the join and skew total-return figures.",
+     "alternatives": [
+      "Re-fetch full history on every extension",
+      "Ignore the drift"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Cache serves stale quotes, bars and searches, with a logged warning, when Yahoo fails",
+     "why": "The design says to degrade gracefully. Pages keep working offline or when rate limited, and errors surface only when nothing is cached.",
+     "alternatives": [
+      "Always raise so the page shows the error banner"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "A quote's previous close comes from the daily bars, not meta.chartPreviousClose",
+     "why": "With range=5d, chartPreviousClose is the close before the 5-day window, so today's change would have been wrong.",
+     "alternatives": [
+      "Use meta.chartPreviousClose"
+     ]
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "465a4ce3d39f",
+     "hash": "465a4ce3d39f6fd42191c5aea5431488515b0078",
+     "date": "2026-10-27T15:37:14-04:00",
+     "subject": "Add Yahoo price source and SQLite price cache; use Yahoo by default",
+     "url": "https://github.com/wingware-dev/investaround/commit/465a4ce3d39f6fd42191c5aea5431488515b0078",
+     "tasks": [
+      "T4 yahoo-price-source"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "6b6d9cd9"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 2181,
+    "output": 38797,
+    "cache_read": 2447091,
+    "cache_write": 46701,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 46,
+      "output": 38661,
+      "cache_read": 2447091,
+      "cache_write_5m": 0,
+      "cache_write_1h": 46701,
+      "web_searches": 0
+     },
+     "claude-haiku-5-5": {
+      "input": 2135,
+      "output": 136,
+      "cache_read": 0,
+      "cache_write_5m": 0,
+      "cache_write_1h": 0,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": []
+  },
+  {
+   "id": "4a764955-16d9-4802-92c9-cfa1e671595f",
+   "label": "T3",
+   "name": "ui-harness-and-shots",
+   "ref": "T3 ui-harness-and-shots",
+   "goal": "Paper investing app",
+   "prompt": "Paper investing app step 2: UI harness and screenshot tool\n\nFrom the accepted plan of T1 new-investing-want-software (691d1322); full design in .TASKS/notes/i-m-new-to-investing-and-want-some-software-so-i-can-try.md. Runs after step 1 app-foundation, side by side with steps 3 and 4.\n\nAdds tests/ui/harness.py (pytest fixtures). Each test starts its own app instance on an OS-assigned port with the fake source and a temp data dir, so instances can run concurrently. A headless Playwright browser uses installed Chrome (channel=\"chrome\") and falls back to Playwright Chromium. Adds tools/shots.py with a registry of named shots that features add to, each in its own file under tools/shots/, so steps don't collide. Includes a smoke UI test (home loads, nav works), takes docs/shots/01-home-skeleton.png, and views it.\nOwns: tests/ui/{conftest,harness}.py, tests/ui/test_smoke.py, tools/shots.py, tools/shots/__init__.py, docs/shots/01-*. Shares: requirements.txt (dev deps; step 1 should already have added them).\n\nCommit a screenshot of each major visible change under docs/shots/ (the user wants a publishable trace).\n\n[Tasks Manager, 2026-10-27 15:30] Manager, from T2 app-foundation (9fa9251e): build test apps with create_app({'DATA_DIR': tmp, 'PRICE_SOURCE': 'fake'}). For error-path tests, pass PRICE_SOURCE_OBJ=FakePriceSource(fail_symbols={...}). pytest is already configured (pyproject.toml sets pythonpath=['.']). Both installed Chrome (channel='chrome') and Playwright Chromium work here. docs/shots/00-app-skeleton.png already exists, so the next shot is 01-home-skeleton. Pass PRICE_SOURCE explicitly: T4 is making yahoo the default at the same time. T4 and T5 run beside you on other files.",
+   "origin": "Filed by the Tasks Manager from the plan of T1 new-investing-want-software, at the user's request",
+   "state": "finished",
+   "started_at": "2026-10-27T15:31:18-04:00",
+   "completed_at": "2026-10-27T15:34:11-04:00",
+   "wall_time_secs": 157,
+   "outcome": "done",
+   "summary": "Added the UI test harness, a screenshot tool with a per-feature shot registry, smoke UI tests, and the 01-home-skeleton screenshot.\n- tests/ui/harness.py: `start_app()` serves each app on an OS-assigned port from a thread, using the fake source and its own data dir. It also has `launch_browser()` (headless installed Chrome, falling back to Playwright Chromium) and the pytest fixtures `live_app`, `browser` and `page`. `page` sets base_url and fails the test on uncaught JS errors. tests/ui/conftest.py registers the fixtures.\n- tools/shots/__init__.py: `@shot(\"NN-name\", \"description\")` registry and `load_all()`, which imports every module in tools/shots/. tools/shots/skeleton.py defines 01-home-skeleton.\n- tools/shots.py: a CLI that takes shots by name or glob and supports `--list` and `--out`. Each shot gets a fresh app and page.\n- tests/ui/test_smoke.py: 8 tests (home loads, nav reaches every section with the right aria-current, brand link, 404, two apps side by side, registry rules, CLI writes a PNG and rejects unknown names). All pass.\n- docs/shots/01-home-skeleton.png: generated and checked by eye.",
+   "reports": [
+    {
+     "at": "2026-10-27T15:33:43-04:00",
+     "status": "done",
+     "summary": "Added the UI test harness, a screenshot tool with a per-feature shot registry, smoke UI tests, and the 01-home-skeleton screenshot.\n- tests/ui/harness.py: `start_app()` serves each app on an OS-assigned port from a thread, using the fake source and its own data dir. It also has `launch_browser()` (headless installed Chrome, falling back to Playwright Chromium) and the pytest fixtures `live_app`, `browser` and `page`. `page` sets base_url and fails the test on uncaught JS errors. tests/ui/conftest.py registers the fixtures.\n- tools/shots/__init__.py: `@shot(\"NN-name\", \"description\")` registry and `load_all()`, which imports every module in tools/shots/. tools/shots/skeleton.py defines 01-home-skeleton.\n- tools/shots.py: a CLI that takes shots by name or glob and supports `--list` and `--out`. Each shot gets a fresh app and page.\n- tests/ui/test_smoke.py: 8 tests (home loads, nav reaches every section with the right aria-current, brand link, 404, two apps side by side, registry rules, CLI writes a PNG and rejects unknown names). All pass.\n- docs/shots/01-home-skeleton.png: generated and checked by eye.",
+     "judgement_calls": [
+      {
+       "decision": "Put the 01 shot in tools/shots/skeleton.py",
+       "why": "Shots must be registered in a module, and step 9 owns tools/shots/home.py, so this name avoids a collision.",
+       "alternatives": [
+        "Define it in tools/shots/__init__.py"
+       ]
+      },
+      {
+       "decision": "The page fixture fails a test on any uncaught JavaScript error",
+       "why": "It catches broken feature JS early in every UI test. tools/shots.py applies the same check.",
+       "alternatives": [
+        "Only collect errors and let each test assert on them"
+       ]
+      },
+      {
+       "decision": "Shot functions take (page, live)",
+       "why": "live.store lets a shot seed portfolios directly, and page.goto('/path') works through base_url.",
+       "alternatives": [
+        "Seed only by driving the UI"
+       ]
+      },
+      {
+       "decision": "Harness drops werkzeug's per-request access log lines",
+       "why": "They cluttered the output of tests and tools/shots.py. Errors are still logged.",
+       "alternatives": []
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "Put the 01 shot in tools/shots/skeleton.py",
+     "why": "Shots must be registered in a module, and step 9 owns tools/shots/home.py, so this name avoids a collision.",
+     "alternatives": [
+      "Define it in tools/shots/__init__.py"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "The page fixture fails a test on any uncaught JavaScript error",
+     "why": "It catches broken feature JS early in every UI test. tools/shots.py applies the same check.",
+     "alternatives": [
+      "Only collect errors and let each test assert on them"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Shot functions take (page, live)",
+     "why": "live.store lets a shot seed portfolios directly, and page.goto('/path') works through base_url.",
+     "alternatives": [
+      "Seed only by driving the UI"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Harness drops werkzeug's per-request access log lines",
+     "why": "They cluttered the output of tests and tools/shots.py. Errors are still logged.",
+     "alternatives": []
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "39b2c2f36233",
+     "hash": "39b2c2f36233e2254ff311b6c3934ece8df03128",
+     "date": "2026-10-27T15:34:12-04:00",
+     "subject": "Add UI test harness, screenshot tool and smoke UI tests",
+     "url": "https://github.com/wingware-dev/investaround/commit/39b2c2f36233e2254ff311b6c3934ece8df03128",
+     "tasks": [
+      "T3 ui-harness-and-shots"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "4cea880a"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 2248,
+    "output": 15504,
+    "cache_read": 1053072,
+    "cache_write": 48949,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 52,
+      "output": 15207,
+      "cache_read": 1053072,
+      "cache_write_5m": 0,
+      "cache_write_1h": 48949,
+      "web_searches": 0
+     },
+     "claude-haiku-5-5": {
+      "input": 2196,
+      "output": 297,
+      "cache_read": 0,
+      "cache_write_5m": 0,
+      "cache_write_1h": 0,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": [
+    {
+     "path": "docs/shots/01-home-skeleton.png",
+     "revision": "39b2c2f36233",
+     "link": "https://github.com/wingware-dev/investaround/raw/39b2c2f36233e2254ff311b6c3934ece8df03128/docs/shots/01-home-skeleton.png"
+    }
+   ]
+  },
+  {
+   "id": "6cb78b44-017d-4332-9536-ead831741e00",
+   "label": "T5",
+   "name": "analytics-engine",
+   "ref": "T5 analytics-engine",
+   "goal": "Paper investing app",
+   "prompt": "Paper investing app step 4: analytics engine\n\nFrom the accepted plan of T1 new-investing-want-software (691d1322); full design in .TASKS/notes/i-m-new-to-investing-and-want-some-software-so-i-can-try.md. Runs after step 1 app-foundation, side by side with steps 2 and 3.\n\nPure functions with no Flask. Builds a portfolio value series from holdings (weights to shares at start, using adjusted close for total return). Computes total return, CAGR, annualized volatility, max drawdown with dates, best and worst year, and per-holding contribution. Compares against a benchmark series. Strategies: buy & hold, rebalancing (monthly/quarterly/yearly), dollar-cost averaging (amount per month), and lump sum vs DCA. Tests use small synthetic series with hand-computed answers.\nOwns: analytics/*.py, tests/unit/test_{performance,strategies}.py. Shares: none.\n\nSee <project>/.TASKS/notes/paper-investing-app-step-4-analytics-engine.md",
+   "origin": "Filed by the Tasks Manager from the plan of T1 new-investing-want-software, at the user's request",
+   "state": "finished",
+   "started_at": "2026-10-27T15:31:18-04:00",
+   "completed_at": "2026-10-27T15:38:18-04:00",
+   "wall_time_secs": 406,
+   "outcome": "done",
+   "summary": "Added the pure analytics engine `investaround/analytics/`, with no Flask, plus 46 unit tests on small synthetic series with hand-computed answers.\n- `performance.py`: `simulate()` runs a portfolio day by day on adjusted closes, with deposits, scheduled buys and optional rebalancing. `portfolio_value_series()` builds buy & hold from saved weight or share-count holdings. `metrics()` gives total return, time-weighted return, CAGR, annualized volatility, max drawdown with peak, trough and recovery dates, calendar-year returns with best and worst year, and each holding's gain and contribution. `compare_to_benchmark()` replays the same money on the same days into a benchmark.\n- `strategies.py`: `buy_and_hold`, `rebalanced` (monthly, quarterly or yearly), `dollar_cost_average` (an amount per month plus an optional initial sum) and `lump_sum_vs_dca`.\n- Holdings that start late wait as cash until their first price and are reported in `late_starts`. Symbols with no data at all stay as cash and are listed in `no_data`.",
+   "reports": [
+    {
+     "at": "2026-10-27T15:37:48-04:00",
+     "status": "done",
+     "summary": "Added the pure analytics engine `investaround/analytics/`, with no Flask, plus 46 unit tests on small synthetic series with hand-computed answers.\n- `performance.py`: `simulate()` runs a portfolio day by day on adjusted closes, with deposits, scheduled buys and optional rebalancing. `portfolio_value_series()` builds buy & hold from saved weight or share-count holdings. `metrics()` gives total return, time-weighted return, CAGR, annualized volatility, max drawdown with peak, trough and recovery dates, calendar-year returns with best and worst year, and each holding's gain and contribution. `compare_to_benchmark()` replays the same money on the same days into a benchmark.\n- `strategies.py`: `buy_and_hold`, `rebalanced` (monthly, quarterly or yearly), `dollar_cost_average` (an amount per month plus an optional initial sum) and `lump_sum_vs_dca`.\n- Holdings that start late wait as cash until their first price and are reported in `late_starts`. Symbols with no data at all stay as cash and are listed in `no_data`.",
+     "judgement_calls": [
+      {
+       "decision": "Package lives at investaround/analytics/ (inside the app package)",
+       "why": "The design's layout tree puts analytics/ under investaround/, next to prices/ and web/; the task's bare 'analytics/*.py' is relative to that.",
+       "alternatives": [
+        "Top-level analytics/ package"
+       ]
+      },
+      {
+       "decision": "A holding with no price yet waits as cash until its first price, then is bought",
+       "why": "Step 6 needs to 'start them late'. Keeping the money as cash keeps the starting amount honest and the contributions adding up. The UI can read late_starts and no_data to explain it. Seen on real fixtures: VXUS starts 2011-01-28, so a 2008 three-fund backtest holds 30% cash through the crash.",
+       "alternatives": [
+        "Re-split the money among the holdings that have prices on day one",
+        "Start the whole backtest at the latest first date"
+       ]
+      },
+      {
+       "decision": "Total return = final value / money deposited - 1; CAGR, volatility, drawdown and yearly returns use the time-weighted growth index",
+       "why": "For DCA, deposits must not count as gains. For buy & hold the two returns are the same. CAGR is therefore the investments' rate, not the saver's money-weighted rate (IRR).",
+       "alternatives": [
+        "Money-weighted IRR for CAGR"
+       ]
+      },
+      {
+       "decision": "CAGR is None for ranges under a year; best and worst year use full calendar years only",
+       "why": "Annualizing a few weeks gives misleading numbers to beginners. A partial year is one that starts after the first week of January or ends before December 24; it is still listed in yearly, flagged partial.",
+       "alternatives": [
+        "Always annualize",
+        "Include partial years in best/worst"
+       ]
+      },
+      {
+       "decision": "Volatility assumes 252 trading days a year",
+       "why": "Standard for stocks and funds. It would understate volatility for 7-day-a-week assets such as crypto, which no fixture contains.",
+       "alternatives": [
+        "Estimate periods per year from the data"
+       ]
+      },
+      {
+       "decision": "Lump sum vs DCA: both start holding the whole sum; DCA invests it in equal monthly parts and keeps the rest as uninvested cash, earning nothing",
+       "why": "Same money and same start date makes the final values directly comparable. Parts the range is too short to invest stay as cash.",
+       "alternatives": [
+        "DCA money arrives monthly from outside (the plain dollar_cost_average does this)"
+       ]
+      },
+      {
+       "decision": "Share-count holdings take their starting cost from close and grow by adjclose",
+       "why": "Gives the real starting value while still counting total return. The T4 yahoo-price-source finding (close is already split-adjusted) means share counts are on today's split basis; this is noted in the module docstring.",
+       "alternatives": [
+        "Use adjclose for cost too"
+       ]
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "Package lives at investaround/analytics/ (inside the app package)",
+     "why": "The design's layout tree puts analytics/ under investaround/, next to prices/ and web/; the task's bare 'analytics/*.py' is relative to that.",
+     "alternatives": [
+      "Top-level analytics/ package"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "A holding with no price yet waits as cash until its first price, then is bought",
+     "why": "Step 6 needs to 'start them late'. Keeping the money as cash keeps the starting amount honest and the contributions adding up. The UI can read late_starts and no_data to explain it. Seen on real fixtures: VXUS starts 2011-01-28, so a 2008 three-fund backtest holds 30% cash through the crash.",
+     "alternatives": [
+      "Re-split the money among the holdings that have prices on day one",
+      "Start the whole backtest at the latest first date"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Total return = final value / money deposited - 1; CAGR, volatility, drawdown and yearly returns use the time-weighted growth index",
+     "why": "For DCA, deposits must not count as gains. For buy & hold the two returns are the same. CAGR is therefore the investments' rate, not the saver's money-weighted rate (IRR).",
+     "alternatives": [
+      "Money-weighted IRR for CAGR"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "CAGR is None for ranges under a year; best and worst year use full calendar years only",
+     "why": "Annualizing a few weeks gives misleading numbers to beginners. A partial year is one that starts after the first week of January or ends before December 24; it is still listed in yearly, flagged partial.",
+     "alternatives": [
+      "Always annualize",
+      "Include partial years in best/worst"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Volatility assumes 252 trading days a year",
+     "why": "Standard for stocks and funds. It would understate volatility for 7-day-a-week assets such as crypto, which no fixture contains.",
+     "alternatives": [
+      "Estimate periods per year from the data"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Lump sum vs DCA: both start holding the whole sum; DCA invests it in equal monthly parts and keeps the rest as uninvested cash, earning nothing",
+     "why": "Same money and same start date makes the final values directly comparable. Parts the range is too short to invest stay as cash.",
+     "alternatives": [
+      "DCA money arrives monthly from outside (the plain dollar_cost_average does this)"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Share-count holdings take their starting cost from close and grow by adjclose",
+     "why": "Gives the real starting value while still counting total return. The T4 yahoo-price-source finding (close is already split-adjusted) means share counts are on today's split basis; this is noted in the module docstring.",
+     "alternatives": [
+      "Use adjclose for cost too"
+     ]
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "573816e5f614",
+     "hash": "573816e5f614dbbaae095656949e4f9c02df4853",
+     "date": "2026-10-27T15:38:19-04:00",
+     "subject": "Add pure analytics engine: value series, performance metrics and strategies",
+     "url": "https://github.com/wingware-dev/investaround/commit/573816e5f614dbbaae095656949e4f9c02df4853",
+     "tasks": [
+      "T5 analytics-engine"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "21c1b2ae"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 40,
+    "output": 46681,
+    "cache_read": 1045251,
+    "cache_write": 76668,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 40,
+      "output": 46681,
+      "cache_read": 1045251,
+      "cache_write_5m": 0,
+      "cache_write_1h": 76668,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": []
+  },
+  {
+   "id": "5868efa4-2f0e-4511-9258-db1034016a43",
+   "label": "T8",
+   "name": "example-portfolios",
+   "ref": "T8 example-portfolios",
+   "goal": "Paper investing app",
+   "prompt": "Paper investing app step 7: example portfolios gallery\n\nFrom the accepted plan of T1 new-investing-want-software (691d1322); full design in .TASKS/notes/i-m-new-to-investing-and-want-some-software-so-i-can-try.md. Runs after step 2 (ui-harness-and-shots); side by side with 5, 6 and 8.\n\nAbout 8 examples, each with a plain explanation of the idea and its risks: S&P 500 only, Three-fund (VTI/VXUS/BND), 60/40, All-weather-style, Dividend payers, Tech/growth-heavy, 10 blue-chip stocks, Gold & REIT diversifier. Each card has a mini history chart and buttons for \"Try it as my portfolio\" (copy to store) and \"See how it would have done\" (link to history). Shot: 30-examples.png.\nOwns: examples/examples.json, web/examples.py, templates/examples/*, tools/shots/examples.py, tests/ui/test_examples.py, tests/unit/test_examples_data.py (every symbol has fixtures and weights sum to 100). Shares: none.\n\nCommit a screenshot of each major visible change under docs/shots/ (the user wants a publishable trace).\n\nSee <project>/.TASKS/notes/paper-investing-app-step-7-example-portfolios-gallery.md",
+   "origin": "Filed by the Tasks Manager from the plan of T1 new-investing-want-software, at the user's request",
+   "state": "finished",
+   "started_at": "2026-10-27T15:34:23-04:00",
+   "completed_at": "2026-10-27T15:39:48-04:00",
+   "wall_time_secs": 307,
+   "outcome": "done",
+   "summary": "Added the example portfolios gallery: 8 plain-language examples, each with the idea, its risks, holdings and a mini 10-year growth chart against the S&P 500.\n- investaround/examples/examples.json: S&P 500 only, Three-fund, 60/40, All-weather style, Dividend payers, Tech/growth heavy, Six blue-chip stocks, Gold & real-estate diversifier.\n- web/examples.py: loads the examples (`load_examples`/`get_example`), computes buy-and-hold growth of $10,000 (adjusted closes, month-end samples, worst drop). `POST /examples/<id>/try` copies an example into the store without clashing names. \"See how it would have done\" links to `/history/?example=<id>`. If a card's prices can't be fetched, that card says so and the rest of the page still loads.\n- templates/examples/index.html with inline Chart.js mini charts; tools/shots/examples.py and docs/shots/30-examples.png.\n- tests/unit/test_examples_data.py (every symbol has fixtures, weights sum to 100, the copy is a valid portfolio, growth checked by hand) and tests/ui/test_examples.py. 51 tests passed (including the smoke UI tests).",
+   "reports": [
+    {
+     "at": "2026-10-27T15:38:57-04:00",
+     "status": "done",
+     "summary": "Added the example portfolios gallery: 8 plain-language examples, each with the idea, its risks, holdings and a mini 10-year growth chart against the S&P 500.\n- investaround/examples/examples.json: S&P 500 only, Three-fund, 60/40, All-weather style, Dividend payers, Tech/growth heavy, Six blue-chip stocks, Gold & real-estate diversifier.\n- web/examples.py: loads the examples (`load_examples`/`get_example`), computes buy-and-hold growth of $10,000 (adjusted closes, month-end samples, worst drop). `POST /examples/<id>/try` copies an example into the store without clashing names. \"See how it would have done\" links to `/history/?example=<id>`. If a card's prices can't be fetched, that card says so and the rest of the page still loads.\n- templates/examples/index.html with inline Chart.js mini charts; tools/shots/examples.py and docs/shots/30-examples.png.\n- tests/unit/test_examples_data.py (every symbol has fixtures, weights sum to 100, the copy is a valid portfolio, growth checked by hand) and tests/ui/test_examples.py. 51 tests passed (including the smoke UI tests).",
+     "judgement_calls": [
+      {
+       "decision": "\"Six blue-chip stocks\" instead of 10",
+       "why": "Only 6 individual stocks (AAPL, MSFT, AMZN, NVDA, JNJ, KO) have recorded fixtures. The unit test requires fixtures for every symbol, and recording more would mean live network use and editing step 1's fixtures.",
+       "alternatives": [
+        "Record 4+ more stock fixtures (e.g. JPM, PG, XOM, WMT) and make it 10"
+       ]
+      },
+      {
+       "decision": "Examples use only the 15 recorded symbols",
+       "why": "Same fixture limit. All-weather is approximated with VTI/BND/GLD (no long-term bonds or commodities), and Dividend payers uses JNJ/KO/MSFT/VNQ instead of a dividend ETF. The text says the all-weather version is simplified.",
+       "alternatives": [
+        "Add TLT, DBC, VYM/SCHD fixtures"
+       ]
+      },
+      {
+       "decision": "Mini charts are 10-year buy-and-hold with an S&P 500 (SPY) dashed line, plus the final value and worst drop",
+       "why": "Every fixture covers 10 years, and the worst drop shows the risk in plain terms next to the gain.",
+       "alternatives": [
+        "Since inception per example",
+        "No benchmark line"
+       ]
+      },
+      {
+       "decision": "After \"Try it\" the user stays on Examples, which shows an \"Added … Go to My portfolios\" notice",
+       "why": "The portfolio pages are being built in parallel (step 5), so their per-portfolio URLs aren't known yet. Repeat copies get named \"Name (2)\".",
+       "alternatives": [
+        "Redirect to the new portfolio's watch page once step 5 exists"
+       ]
+      },
+      {
+       "decision": "Chart JS inline in the template, not static/js/examples.js",
+       "why": "The task's Owns list covers templates/examples/* but not static/js."
+      }
+     ],
+     "verdict": null
+    },
+    {
+     "at": "2026-10-27T15:39:19-04:00",
+     "status": "done",
+     "summary": "Added the example portfolios gallery: 8 plain-language examples, each with the idea, its risks, holdings and a mini 10-year growth chart against the S&P 500.\n- investaround/examples/examples.json: S&P 500 only, Three-fund, 60/40, All-weather style, Dividend payers, Tech/growth heavy, Six blue-chip stocks, Gold & real-estate diversifier.\n- web/examples.py: loads the examples (`load_examples`/`get_example`), computes buy-and-hold growth of $10,000 (adjusted closes, month-end samples, worst drop). `POST /examples/<id>/try` copies an example into the store without clashing names. \"See how it would have done\" links to `/history/?example=<id>`. If a card's prices can't be fetched, that card says so and the rest of the page still loads.\n- templates/examples/index.html with inline Chart.js mini charts; tools/shots/examples.py and docs/shots/30-examples.png.\n- tests/unit/test_examples_data.py (every symbol has fixtures, weights sum to 100, the copy is a valid portfolio, growth checked by hand) and tests/ui/test_examples.py. 51 tests passed (including the smoke UI tests).",
+     "judgement_calls": [
+      {
+       "decision": "\"Six blue-chip stocks\" instead of 10",
+       "why": "Only 6 individual stocks (AAPL, MSFT, AMZN, NVDA, JNJ, KO) have recorded fixtures. The unit test requires fixtures for every symbol, and recording more would mean live network use and editing step 1's fixtures.",
+       "alternatives": [
+        "Record 4+ more stock fixtures (e.g. JPM, PG, XOM, WMT) and make it 10"
+       ]
+      },
+      {
+       "decision": "Examples use only the 15 recorded symbols",
+       "why": "Same fixture limit. All-weather is approximated with VTI/BND/GLD (no long-term bonds or commodities), and Dividend payers uses JNJ/KO/MSFT/VNQ instead of a dividend ETF. The text says the all-weather version is simplified.",
+       "alternatives": [
+        "Add TLT, DBC, VYM/SCHD fixtures"
+       ]
+      },
+      {
+       "decision": "Mini charts are 10-year buy-and-hold with an S&P 500 (SPY) dashed line, plus the final value and worst drop",
+       "why": "Every fixture covers 10 years, and the worst drop shows the risk in plain terms next to the gain.",
+       "alternatives": [
+        "Since inception per example",
+        "No benchmark line"
+       ]
+      },
+      {
+       "decision": "After \"Try it\" the user stays on Examples, which shows an \"Added … Go to My portfolios\" notice",
+       "why": "The portfolio pages are being built in parallel (step 5), so their per-portfolio URLs aren't known yet. Repeat copies get named \"Name (2)\".",
+       "alternatives": [
+        "Redirect to the new portfolio's watch page once step 5 exists"
+       ]
+      },
+      {
+       "decision": "Chart JS inline in the template, not static/js/examples.js",
+       "why": "The task's Owns list covers templates/examples/* but not static/js."
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "\"Six blue-chip stocks\" instead of 10",
+     "why": "Only 6 individual stocks (AAPL, MSFT, AMZN, NVDA, JNJ, KO) have recorded fixtures. The unit test requires fixtures for every symbol, and recording more would mean live network use and editing step 1's fixtures.",
+     "alternatives": [
+      "Record 4+ more stock fixtures (e.g. JPM, PG, XOM, WMT) and make it 10"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Examples use only the 15 recorded symbols",
+     "why": "Same fixture limit. All-weather is approximated with VTI/BND/GLD (no long-term bonds or commodities), and Dividend payers uses JNJ/KO/MSFT/VNQ instead of a dividend ETF. The text says the all-weather version is simplified.",
+     "alternatives": [
+      "Add TLT, DBC, VYM/SCHD fixtures"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Mini charts are 10-year buy-and-hold with an S&P 500 (SPY) dashed line, plus the final value and worst drop",
+     "why": "Every fixture covers 10 years, and the worst drop shows the risk in plain terms next to the gain.",
+     "alternatives": [
+      "Since inception per example",
+      "No benchmark line"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "After \"Try it\" the user stays on Examples, which shows an \"Added … Go to My portfolios\" notice",
+     "why": "The portfolio pages are being built in parallel (step 5), so their per-portfolio URLs aren't known yet. Repeat copies get named \"Name (2)\".",
+     "alternatives": [
+      "Redirect to the new portfolio's watch page once step 5 exists"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Chart JS inline in the template, not static/js/examples.js",
+     "why": "The task's Owns list covers templates/examples/* but not static/js.",
+     "alternatives": []
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "2d5891525b5e",
+     "hash": "2d5891525b5e95e060b971a11c5ebfdfe9f416f4",
+     "date": "2026-10-27T15:39:49-04:00",
+     "subject": "Add example portfolios gallery",
+     "url": "https://github.com/wingware-dev/investaround/commit/2d5891525b5e95e060b971a11c5ebfdfe9f416f4",
+     "tasks": [
+      "T8 example-portfolios"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "972624c0"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 76,
+    "output": 29460,
+    "cache_read": 2352614,
+    "cache_write": 80759,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 76,
+      "output": 29460,
+      "cache_read": 2352614,
+      "cache_write_5m": 0,
+      "cache_write_1h": 80759,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": [
+    {
+     "path": "docs/shots/30-examples.png",
+     "revision": "2d5891525b5e",
+     "link": "https://github.com/wingware-dev/investaround/raw/2d5891525b5e95e060b971a11c5ebfdfe9f416f4/docs/shots/30-examples.png"
+    }
+   ]
+  },
+  {
+   "id": "b0a3ff12-912f-4f09-bc43-98aedb4fc247",
+   "label": "T6",
+   "name": "portfolio-builder-watch",
+   "ref": "T6 portfolio-builder-watch",
+   "goal": "Paper investing app",
+   "prompt": "Paper investing app step 5: portfolio builder and daily watch page\n\nFrom the accepted plan of T1 new-investing-want-software (691d1322); full design in .TASKS/notes/i-m-new-to-investing-and-want-some-software-so-i-can-try.md. Runs after steps 2 (ui-harness-and-shots) and 3 (yahoo-price-source); side by side with 6, 7 and 8.\n\nCreate, edit and delete paper portfolios with a $10,000 pretend start. Holdings are added through symbol search (/api/search) with weights, a 5-20 guidance hint, and validation. The watch page shows each holding's current price, today's change, value and gain since the portfolio was created, totals, and a \"last updated\" time with refresh. UI tests create a portfolio as a user would. Shots: 10-build-portfolio.png, 11-watch-portfolio.png.\nOwns: web/portfolios.py, templates/portfolios/*, static/js/portfolio.js, tools/shots/portfolios.py, tests/ui/test_portfolios.py. Shares: none.\n\nCommit a screenshot of each major visible change under docs/shots/ (the user wants a publishable trace).\n\nSee <project>/.TASKS/notes/paper-investing-app-step-5-portfolio-builder-and-daily-w.md",
+   "origin": "Filed by the Tasks Manager from the plan of T1 new-investing-want-software, at the user's request",
+   "state": "finished",
+   "started_at": "2026-10-27T15:37:29-04:00",
+   "completed_at": "2026-10-27T15:45:13-04:00",
+   "wall_time_secs": 445,
+   "outcome": "done",
+   "summary": "Added the portfolio builder and the daily watch page:\n- `/portfolios/` lists portfolios with value, today's change and gain. Each one can be created, edited and deleted (deleting asks first on a confirm page).\n- The builder adds investments through symbol search (`/api/search`) and splits $10,000 evenly until the user types weights. It shows the 5–20 guidance, a running weight total and dollar amounts. The server checks the weights and that every symbol is known.\n- The watch page shows price, today's change, value and gain since start for each holding, plus totals. It has a \"Last updated\" time and a Refresh button that reloads only the table, and it also refreshes every 5 minutes. If prices are unavailable it shows a message instead of an error page.\n- New unit and UI tests. Screenshots are in docs/shots/10-build-portfolio.png and docs/shots/11-watch-portfolio.png.",
+   "reports": [
+    {
+     "at": "2026-10-27T15:44:43-04:00",
+     "status": "done",
+     "summary": "Added the portfolio builder and the daily watch page:\n- `/portfolios/` lists portfolios with value, today's change and gain. Each one can be created, edited and deleted (deleting asks first on a confirm page).\n- The builder adds investments through symbol search (`/api/search`) and splits $10,000 evenly until the user types weights. It shows the 5–20 guidance, a running weight total and dollar amounts. The server checks the weights and that every symbol is known.\n- The watch page shows price, today's change, value and gain since start for each holding, plus totals. It has a \"Last updated\" time and a Refresh button that reloads only the table, and it also refreshes every 5 minutes. If prices are unavailable it shows a message instead of an error page.\n- New unit and UI tests. Screenshots are in docs/shots/10-build-portfolio.png and docs/shots/11-watch-portfolio.png.",
+     "judgement_calls": [
+      {
+       "decision": "A portfolio is bought at the last closing price before the day it was created",
+       "why": "No purchase price is stored in the model, so the start has to come from history. Using the close before the creation day means the starting point never moves afterwards, which today's still-changing bar could not guarantee. On day one the gain equals today's change. The watch page says which close was used.",
+       "alternatives": [
+        "Add purchase prices to Holding in models.py (outside this task's files)",
+        "Use the close on the creation day itself"
+       ]
+      },
+      {
+       "decision": "Gains use the adjusted-close ratio, so dividends and splits count",
+       "why": "This matches how the history and analytics features measure total return."
+      },
+      {
+       "decision": "Changing investments or weights starts the portfolio again from today; renaming or editing notes does not",
+       "why": "Otherwise an edit would rewrite the past, as if the new mix had been held since the original date. The edit form explains this.",
+       "alternatives": [
+        "Keep the original start date always",
+        "Ask with a checkbox"
+       ]
+      },
+      {
+       "decision": "Served /api/search at the site root using record_once in web/portfolios.py",
+       "why": "The task names /api/search but app.py is not in this task's files, and a blueprint route always gets the /portfolios prefix."
+      },
+      {
+       "decision": "Added tests/unit/test_portfolios_web.py beyond the listed files",
+       "why": "The valuation maths and form checks are easier to cover exactly with unit tests than through the browser. It is a new file, so it doesn't collide with other tasks."
+      },
+      {
+       "decision": "Deleting goes through a confirmation page rather than a JavaScript confirm()",
+       "why": "It works without JavaScript and is easy to drive in UI tests."
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "A portfolio is bought at the last closing price before the day it was created",
+     "why": "No purchase price is stored in the model, so the start has to come from history. Using the close before the creation day means the starting point never moves afterwards, which today's still-changing bar could not guarantee. On day one the gain equals today's change. The watch page says which close was used.",
+     "alternatives": [
+      "Add purchase prices to Holding in models.py (outside this task's files)",
+      "Use the close on the creation day itself"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Gains use the adjusted-close ratio, so dividends and splits count",
+     "why": "This matches how the history and analytics features measure total return.",
+     "alternatives": []
+    },
+    {
+     "report": 1,
+     "decision": "Changing investments or weights starts the portfolio again from today; renaming or editing notes does not",
+     "why": "Otherwise an edit would rewrite the past, as if the new mix had been held since the original date. The edit form explains this.",
+     "alternatives": [
+      "Keep the original start date always",
+      "Ask with a checkbox"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Served /api/search at the site root using record_once in web/portfolios.py",
+     "why": "The task names /api/search but app.py is not in this task's files, and a blueprint route always gets the /portfolios prefix.",
+     "alternatives": []
+    },
+    {
+     "report": 1,
+     "decision": "Added tests/unit/test_portfolios_web.py beyond the listed files",
+     "why": "The valuation maths and form checks are easier to cover exactly with unit tests than through the browser. It is a new file, so it doesn't collide with other tasks.",
+     "alternatives": []
+    },
+    {
+     "report": 1,
+     "decision": "Deleting goes through a confirmation page rather than a JavaScript confirm()",
+     "why": "It works without JavaScript and is easy to drive in UI tests.",
+     "alternatives": []
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "404acfb9a4ae",
+     "hash": "404acfb9a4aec10e4b745527d08e276a969bd3d3",
+     "date": "2026-10-27T15:45:14-04:00",
+     "subject": "Add portfolio builder and daily watch page",
+     "url": "https://github.com/wingware-dev/investaround/commit/404acfb9a4aec10e4b745527d08e276a969bd3d3",
+     "tasks": [
+      "T6 portfolio-builder-watch"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "74b71a32"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 78,
+    "output": 46107,
+    "cache_read": 3053443,
+    "cache_write": 113111,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 78,
+      "output": 46107,
+      "cache_read": 3053443,
+      "cache_write_5m": 0,
+      "cache_write_1h": 113111,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": [
+    {
+     "path": "docs/shots/10-build-portfolio.png",
+     "revision": "404acfb9a4ae",
+     "link": "https://github.com/wingware-dev/investaround/raw/404acfb9a4aec10e4b745527d08e276a969bd3d3/docs/shots/10-build-portfolio.png"
+    },
+    {
+     "path": "docs/shots/11-watch-portfolio.png",
+     "revision": "404acfb9a4ae",
+     "link": "https://github.com/wingware-dev/investaround/raw/404acfb9a4aec10e4b745527d08e276a969bd3d3/docs/shots/11-watch-portfolio.png"
+    }
+   ]
+  },
+  {
+   "id": "bb25849e-d7f6-48a0-8e6c-fbd86aef3810",
+   "label": "T7",
+   "name": "history-backtest-page",
+   "ref": "T7 history-backtest-page",
+   "goal": "Paper investing app",
+   "prompt": "Paper investing app step 6: history / \"what if\" backtest page\n\nFrom the accepted plan of T1 new-investing-want-software (691d1322); full design in .TASKS/notes/i-m-new-to-investing-and-want-some-software-so-i-can-try.md. Runs after steps 2, 3 and 4 (ui-harness-and-shots, yahoo-price-source, analytics-engine); side by side with 5, 7 and 8.\n\nPick a portfolio (or a quick ad-hoc set) and a date range. Preset ranges: 1y, 5y, 10y, max, 2008 crash, 2020 crash, 2022 bear. The page charts the growth of $10,000 against a benchmark (SPY by default), shows a metrics table with plain-English tooltips, and a per-holding table. It handles symbols with no data that early by saying so and starting them late. Shots: 20-history-10y.png, 21-history-2008.png.\nOwns: web/history.py, templates/history/*, static/js/history.js, tools/shots/history.py, tests/ui/test_history.py. Shares: none.\n\nCommit a screenshot of each major visible change under docs/shots/ (the user wants a publishable trace).\n\n[Tasks Manager, 2026-10-27 15:37] Manager, from T4 yahoo-price-source (ea97e03c): Yahoo's `close` is already split-adjusted, and `adjclose` only adds dividends. Use `adjclose` for total return. No split handling is needed.\n\n[Tasks Manager, 2026-10-27 15:38] Manager, from T5 analytics-engine (6cb78b44): use investaround.analytics: portfolio_value_series() and compare_to_benchmark(). Explain the ValueSeries' late_starts (holdings kept as cash until their first price) and no_data on the page. cagr and best/worst year are None for short ranges, so show 'n/a' for those.\n\nSee <project>/.TASKS/notes/paper-investing-app-step-6-history-what-if-backtest.md",
+   "origin": "Filed by the Tasks Manager from the plan of T1 new-investing-want-software, at the user's request",
+   "state": "finished",
+   "started_at": "2026-10-27T15:38:39-04:00",
+   "completed_at": "2026-10-27T15:45:53-04:00",
+   "wall_time_secs": 377,
+   "outcome": "done",
+   "summary": "Built the \"What if?\" history backtest page.\n- `web/history.py`: pick a saved portfolio, an example (`?example=<id>`, as the Examples page links) or your own mix (\"VTI 60, BND 40\", or \"VTI, BND\" to split evenly), a preset range (1y/5y/10y/max/2008 crash/2020 crash/2022 bear) or custom dates, and a benchmark (SPY by default). Runs `portfolio_value_series()` + `compare_to_benchmark()` on adjusted closes.\n- `templates/history/index.html` + `static/js/history.js`: growth chart against the benchmark, a \"Good to know\" box explaining late starts (money waits as cash until a holding's first price) and no-data holdings (kept as cash, with a Cash row), a metrics table with plain-English tooltips ('n/a' for CAGR and best/worst year on short ranges), and a per-holding table.\n- Friendly messages for an unknown example or portfolio, unknown symbols, bad weights or dates, and price-source failures. A benchmark failure still shows the portfolio, just without the comparison.\n- Tests: `tests/ui/test_history.py` (10 UI tests) and `tests/unit/test_history_view.py` (parsing, ranges, formatting). All 36 pass, plus the Examples→History link test.\n- Shots: `docs/shots/20-history-10y.png` and `docs/shots/21-history-2008.png` (`tools/shots/history.py`), both looked at.",
+   "reports": [
+    {
+     "at": "2026-10-27T15:44:44-04:00",
+     "status": "done",
+     "summary": "Built the \"What if?\" history backtest page.\n- `web/history.py`: pick a saved portfolio, an example (`?example=<id>`, as the Examples page links) or your own mix (\"VTI 60, BND 40\", or \"VTI, BND\" to split evenly), a preset range (1y/5y/10y/max/2008 crash/2020 crash/2022 bear) or custom dates, and a benchmark (SPY by default). Runs `portfolio_value_series()` + `compare_to_benchmark()` on adjusted closes.\n- `templates/history/index.html` + `static/js/history.js`: growth chart against the benchmark, a \"Good to know\" box explaining late starts (money waits as cash until a holding's first price) and no-data holdings (kept as cash, with a Cash row), a metrics table with plain-English tooltips ('n/a' for CAGR and best/worst year on short ranges), and a per-holding table.\n- Friendly messages for an unknown example or portfolio, unknown symbols, bad weights or dates, and price-source failures. A benchmark failure still shows the portfolio, just without the comparison.\n- Tests: `tests/ui/test_history.py` (10 UI tests) and `tests/unit/test_history_view.py` (parsing, ranges, formatting). All 36 pass, plus the Examples→History link test.\n- Shots: `docs/shots/20-history-10y.png` and `docs/shots/21-history-2008.png` (`tools/shots/history.py`), both looked at.",
+     "judgement_calls": [
+      {
+       "decision": "Crash presets: 2008 = Oct 1 2007–Dec 31 2012, 2020 = calendar 2020, 2022 = Jan 2022–Dec 2023",
+       "why": "Each window shows the fall and the recovery, so a newcomer sees both the drop and how long holding on took. The one-line explanation of each shows on the page and in the button tooltip.",
+       "alternatives": [
+        "Peak-to-trough only (e.g. Oct 2007–Mar 2009)",
+        "Peak to full recovery, per symbol"
+       ]
+      },
+      {
+       "decision": "Custom-mix weights that don't add to 100 are scaled to 100, with a note",
+       "why": "Friendlier for quick what-ifs (\"SPY 3, BND 1\" becomes 75/25). Missing some but not all weights is still an error.",
+       "alternatives": [
+        "Reject unless the weights add up to exactly 100%, as saved portfolios do"
+       ]
+      },
+      {
+       "decision": "The first visit runs nothing. It preselects the first saved portfolio, else the Three-fund example",
+       "why": "Avoids fetching prices before the user has chosen anything. One click on a range button runs it.",
+       "alternatives": [
+        "Auto-run 10y on the default pick"
+       ]
+      },
+      {
+       "decision": "Added tests/unit/test_history_view.py, which the task's Owns list doesn't name",
+       "why": "The regimen wants unit tests for the new parsing and range code, and the new file collides with nothing.",
+       "alternatives": [
+        "Fold those checks into tests/ui/test_history.py"
+       ]
+      },
+      {
+       "decision": "Share-count portfolios chart their actual starting cost, not a fixed $10,000",
+       "why": "portfolio_value_series() buys the given shares at the first close, so the headline says \"$X put in on <date>\" with the real amount. Weight portfolios and examples use their $10,000 start cash.",
+       "alternatives": [
+        "Convert share counts to weights and always show $10,000"
+       ]
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "Crash presets: 2008 = Oct 1 2007–Dec 31 2012, 2020 = calendar 2020, 2022 = Jan 2022–Dec 2023",
+     "why": "Each window shows the fall and the recovery, so a newcomer sees both the drop and how long holding on took. The one-line explanation of each shows on the page and in the button tooltip.",
+     "alternatives": [
+      "Peak-to-trough only (e.g. Oct 2007–Mar 2009)",
+      "Peak to full recovery, per symbol"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Custom-mix weights that don't add to 100 are scaled to 100, with a note",
+     "why": "Friendlier for quick what-ifs (\"SPY 3, BND 1\" becomes 75/25). Missing some but not all weights is still an error.",
+     "alternatives": [
+      "Reject unless the weights add up to exactly 100%, as saved portfolios do"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "The first visit runs nothing. It preselects the first saved portfolio, else the Three-fund example",
+     "why": "Avoids fetching prices before the user has chosen anything. One click on a range button runs it.",
+     "alternatives": [
+      "Auto-run 10y on the default pick"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Added tests/unit/test_history_view.py, which the task's Owns list doesn't name",
+     "why": "The regimen wants unit tests for the new parsing and range code, and the new file collides with nothing.",
+     "alternatives": [
+      "Fold those checks into tests/ui/test_history.py"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Share-count portfolios chart their actual starting cost, not a fixed $10,000",
+     "why": "portfolio_value_series() buys the given shares at the first close, so the headline says \"$X put in on <date>\" with the real amount. Weight portfolios and examples use their $10,000 start cash.",
+     "alternatives": [
+      "Convert share counts to weights and always show $10,000"
+     ]
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "87a7e0dfdbd7",
+     "hash": "87a7e0dfdbd7b5e0fc061d8d2a3ea8d19b4e7881",
+     "date": "2026-10-27T15:45:54-04:00",
+     "subject": "Add \"What if?\" history backtest page",
+     "url": "https://github.com/wingware-dev/investaround/commit/87a7e0dfdbd7b5e0fc061d8d2a3ea8d19b4e7881",
+     "tasks": [
+      "T7 history-backtest-page"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "3234dc1c"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 2222,
+    "output": 38750,
+    "cache_read": 3122463,
+    "cache_write": 108420,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 84,
+      "output": 38736,
+      "cache_read": 3122463,
+      "cache_write_5m": 0,
+      "cache_write_1h": 108420,
+      "web_searches": 0
+     },
+     "claude-haiku-5-5": {
+      "input": 2138,
+      "output": 14,
+      "cache_read": 0,
+      "cache_write_5m": 0,
+      "cache_write_1h": 0,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": [
+    {
+     "path": "docs/shots/20-history-10y.png",
+     "revision": "87a7e0dfdbd7",
+     "link": "https://github.com/wingware-dev/investaround/raw/87a7e0dfdbd7b5e0fc061d8d2a3ea8d19b4e7881/docs/shots/20-history-10y.png"
+    },
+    {
+     "path": "docs/shots/21-history-2008.png",
+     "revision": "87a7e0dfdbd7",
+     "link": "https://github.com/wingware-dev/investaround/raw/87a7e0dfdbd7b5e0fc061d8d2a3ea8d19b4e7881/docs/shots/21-history-2008.png"
+    }
+   ]
+  },
+  {
+   "id": "341d042b-6900-405a-a496-fdfc8ab3d8b2",
+   "label": "T9",
+   "name": "learn-strategy-lab",
+   "ref": "T9 learn-strategy-lab",
+   "goal": "Paper investing app",
+   "prompt": "Paper investing app step 8: Learn and Strategies lab\n\nFrom the accepted plan of T1 new-investing-want-software (691d1322); full design in .TASKS/notes/i-m-new-to-investing-and-want-some-software-so-i-can-try.md. Runs after steps 2 and 4 (ui-harness-and-shots, analytics-engine); side by side with 5, 6 and 7.\n\nShort lessons: what stocks, ETFs, funds and bonds are; diversification; fees; volatility and drawdown; time in market; DCA; rebalancing. Adds a glossary. The Strategy lab runs lump sum vs DCA vs rebalancing for a chosen portfolio and range, and shows them side by side with a \"what this shows\" explanation. Adds a not-financial-advice disclaimer. Shots: 40-learn.png, 41-strategy-lab.png.\nOwns: web/learn.py, templates/learn/*, static/js/learn.js, tools/shots/learn.py, tests/ui/test_learn.py. Shares: none.\n\nCommit a screenshot of each major visible change under docs/shots/ (the user wants a publishable trace).\n\n[Tasks Manager, 2026-10-27 15:38] Manager, from T5 analytics-engine (6cb78b44): use investaround.analytics.strategies: buy_and_hold, rebalanced(period in REBALANCE_PERIODS), dollar_cost_average, and lump_sum_vs_dca, which returns lump, dca, difference and winner. Each StrategyResult has key, label, series and metrics. Uninvested cash earns 0%, which tilts lump sum vs DCA slightly toward lump sum, so say so in the \"what this shows\" text.\n\nSee <project>/.TASKS/notes/paper-investing-app-step-8-learn-and-strategies-lab.md",
+   "origin": "Filed by the Tasks Manager from the plan of T1 new-investing-want-software, at the user's request",
+   "state": "finished",
+   "started_at": "2026-10-27T15:38:39-04:00",
+   "completed_at": "2026-10-27T15:44:25-04:00",
+   "wall_time_secs": 330,
+   "outcome": "done",
+   "summary": "Adds the Learn page and the Strategy lab:\n- `/learn/`: a not-financial-advice disclaimer, nine short lessons (stocks, bonds, funds/ETFs, diversification, fees, volatility and drawdown, time in market, DCA, rebalancing) with \"Try it\" links, and a glossary of 27 terms you can filter.\n- `/learn/lab`: runs $10,000 three ways (all at once, spread over 3/6/12/24 months, rebalanced monthly/quarterly/yearly) for a ready-made mix or a saved portfolio over six preset ranges. Shows the three side by side with metrics and a shared chart, plus a \"What this shows\" text built from the results. The text says that waiting cash earns 0%, and how far the mix drifted without rebalancing.\n- Tests in tests/unit/test_learn.py and tests/ui/test_learn.py; shots docs/shots/40-learn.png and 41-strategy-lab.png.",
+   "reports": [
+    {
+     "at": "2026-10-27T15:43:58-04:00",
+     "status": "done",
+     "summary": "Adds the Learn page and the Strategy lab:\n- `/learn/`: a not-financial-advice disclaimer, nine short lessons (stocks, bonds, funds/ETFs, diversification, fees, volatility and drawdown, time in market, DCA, rebalancing) with \"Try it\" links, and a glossary of 27 terms you can filter.\n- `/learn/lab`: runs $10,000 three ways (all at once, spread over 3/6/12/24 months, rebalanced monthly/quarterly/yearly) for a ready-made mix or a saved portfolio over six preset ranges. Shows the three side by side with metrics and a shared chart, plus a \"What this shows\" text built from the results. The text says that waiting cash earns 0%, and how far the mix drifted without rebalancing.\n- Tests in tests/unit/test_learn.py and tests/ui/test_learn.py; shots docs/shots/40-learn.png and 41-strategy-lab.png.",
+     "judgement_calls": [
+      {
+       "decision": "The lab has its own four ready-made mixes instead of using the Examples gallery's examples",
+       "why": "The examples module belongs to task T7 and isn't committed yet, so depending on it would tie the two tasks together. With ready-made mixes the lab works even with no saved portfolio. Saved portfolios are also offered.",
+       "alternatives": [
+        "Offer the examples from investaround.web.examples.load_examples() once T7 is committed"
+       ]
+      },
+      {
+       "decision": "Preset date ranges only, no custom start and end dates",
+       "why": "Keeps the form simple for beginners and every result meaningful: 5/10/15 years, the 2008 crash, the 2020 crash and the 2022 bear market. Choices go in the URL, so results can be linked to.",
+       "alternatives": [
+        "Add custom date inputs as on the History page"
+       ]
+      },
+      {
+       "decision": "Share-count portfolios are weighted by their value at the start of the range",
+       "why": "The strategies take weights, so this turns share counts into weights and runs the same mix through all three strategies.",
+       "alternatives": [
+        "Leave share-count portfolios out of the lab"
+       ]
+      },
+      {
+       "decision": "Added tests/unit/test_learn.py, which the task's Owns list doesn't name",
+       "why": "The testing regimen asks for unit tests of new code. The lab's logic and explanation text are easier to pin down with synthetic prices than through the UI. It is a new file, so it can't clash with other tasks.",
+       "alternatives": [
+        "Put all the tests in tests/ui/test_learn.py"
+       ]
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "The lab has its own four ready-made mixes instead of using the Examples gallery's examples",
+     "why": "The examples module belongs to task T7 and isn't committed yet, so depending on it would tie the two tasks together. With ready-made mixes the lab works even with no saved portfolio. Saved portfolios are also offered.",
+     "alternatives": [
+      "Offer the examples from investaround.web.examples.load_examples() once T7 is committed"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Preset date ranges only, no custom start and end dates",
+     "why": "Keeps the form simple for beginners and every result meaningful: 5/10/15 years, the 2008 crash, the 2020 crash and the 2022 bear market. Choices go in the URL, so results can be linked to.",
+     "alternatives": [
+      "Add custom date inputs as on the History page"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Share-count portfolios are weighted by their value at the start of the range",
+     "why": "The strategies take weights, so this turns share counts into weights and runs the same mix through all three strategies.",
+     "alternatives": [
+      "Leave share-count portfolios out of the lab"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Added tests/unit/test_learn.py, which the task's Owns list doesn't name",
+     "why": "The testing regimen asks for unit tests of new code. The lab's logic and explanation text are easier to pin down with synthetic prices than through the UI. It is a new file, so it can't clash with other tasks.",
+     "alternatives": [
+      "Put all the tests in tests/ui/test_learn.py"
+     ]
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "d94be11d7548",
+     "hash": "d94be11d754872282e3e8135889c916e86293176",
+     "date": "2026-10-27T15:44:26-04:00",
+     "subject": "Add Learn page and Strategy lab",
+     "url": "https://github.com/wingware-dev/investaround/commit/d94be11d754872282e3e8135889c916e86293176",
+     "tasks": [
+      "T9 learn-strategy-lab"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "4e3aa163"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 70,
+    "output": 32463,
+    "cache_read": 2577134,
+    "cache_write": 103299,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 70,
+      "output": 32463,
+      "cache_read": 2577134,
+      "cache_write_5m": 0,
+      "cache_write_1h": 103299,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": [
+    {
+     "path": "docs/shots/40-learn.png",
+     "revision": "d94be11d7548",
+     "link": "https://github.com/wingware-dev/investaround/raw/d94be11d754872282e3e8135889c916e86293176/docs/shots/40-learn.png"
+    },
+    {
+     "path": "docs/shots/41-strategy-lab.png",
+     "revision": "d94be11d7548",
+     "link": "https://github.com/wingware-dev/investaround/raw/d94be11d754872282e3e8135889c916e86293176/docs/shots/41-strategy-lab.png"
+    }
+   ]
+  },
+  {
+   "id": "455c783b-81a3-4131-ace8-e2b702b60d5f",
+   "label": "T13",
+   "name": "richer-example-fixtures",
+   "ref": "T13 richer-example-fixtures",
+   "goal": "Paper investing app",
+   "prompt": "Record more fixtures for richer example portfolios\n\nFollow-up from T8 example-portfolios (5868efa4); it completes the plan's example list, which asked for \"10 blue-chip stocks\". Run tools/record_fixtures.py (live, developer-run, read-only Yahoo GETs) for JPM, PG, XOM, WMT, HD, TLT, DBC, VYM, for example. Then make \"Six blue-chip stocks\" a true 10-stock example, give All-weather its long-term bonds and commodities, and add a dividend ETF to Dividend payers. Keep tests/unit/test_examples_data.py passing (every symbol has fixtures, weights sum to 100) and refresh docs/shots/30-examples.png if the cards change visibly.",
+   "origin": "Filed by the Tasks Manager from the plan of T8 example-portfolios",
+   "state": "finished",
+   "started_at": "2026-10-27T15:40:05-04:00",
+   "completed_at": "2026-10-27T15:42:25-04:00",
+   "wall_time_secs": 126,
+   "outcome": "done",
+   "summary": "Recorded price fixtures for 10 more symbols and used them to make three example portfolios complete.\n- New fixtures (live, read-only Yahoo GETs through tools/record_fixtures.py): JPM, PG, XOM, WMT, HD, TLT, IEF, DBC, VYM and SCHD. quotes.json only gained entries; existing quotes and its as_of date are unchanged. They're also added to the recorder's default list and to the fake-source test's list.\n- \"Six blue-chip stocks\" is now \"10 blue-chip stocks\": ten companies at 10% each, adding JPMorgan, Procter & Gamble, ExxonMobil and Walmart.\n- All-weather now follows Dalio's mix: VTI 30, TLT 40, IEF 15, GLD 7.5, DBC 7.5, with the idea and risks text rewritten to match.\n- Dividend payers now puts half in two dividend funds: VYM 25 and SCHD 25, then JNJ, KO, PG, HD and VNQ at 10 each.\n- Refreshed docs/shots/30-examples.png. 55 tests passed (examples unit and UI tests, fake-source tests).",
+   "reports": [
+    {
+     "at": "2026-10-27T15:42:01-04:00",
+     "status": "done",
+     "summary": "Recorded price fixtures for 10 more symbols and used them to make three example portfolios complete.\n- New fixtures (live, read-only Yahoo GETs through tools/record_fixtures.py): JPM, PG, XOM, WMT, HD, TLT, IEF, DBC, VYM and SCHD. quotes.json only gained entries; existing quotes and its as_of date are unchanged. They're also added to the recorder's default list and to the fake-source test's list.\n- \"Six blue-chip stocks\" is now \"10 blue-chip stocks\": ten companies at 10% each, adding JPMorgan, Procter & Gamble, ExxonMobil and Walmart.\n- All-weather now follows Dalio's mix: VTI 30, TLT 40, IEF 15, GLD 7.5, DBC 7.5, with the idea and risks text rewritten to match.\n- Dividend payers now puts half in two dividend funds: VYM 25 and SCHD 25, then JNJ, KO, PG, HD and VNQ at 10 each.\n- Refreshed docs/shots/30-examples.png. 55 tests passed (examples unit and UI tests, fake-source tests).",
+     "judgement_calls": [
+      {
+       "decision": "All-weather uses the published 30/40/15/7.5/7.5 split with TLT, IEF, GLD and DBC",
+       "why": "It matches the well-known Dalio mix that the card describes, and the 7.5% weights show fine as \"7.5%\".",
+       "alternatives": [
+        "Round to 30/40/15/8/7"
+       ]
+      },
+      {
+       "decision": "Dividend payers: 50% in VYM and SCHD, plus JNJ, KO, PG, HD and VNQ at 10% each; MSFT dropped",
+       "why": "The two funds give real diversification. Dropping MSFT avoids overlap with the tech and blue-chip examples, and it lets HD, which was recorded for this, be used.",
+       "alternatives": [
+        "Use only one dividend ETF"
+       ]
+      },
+      {
+       "decision": "Edited tests/unit/test_fake_source.py and tools/record_fixtures.py, outside the examples files",
+       "why": "The fake-source test asserts the exact recorded symbol list. Without the default-list change, a full fixture refresh would leave the new symbols stale."
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "All-weather uses the published 30/40/15/7.5/7.5 split with TLT, IEF, GLD and DBC",
+     "why": "It matches the well-known Dalio mix that the card describes, and the 7.5% weights show fine as \"7.5%\".",
+     "alternatives": [
+      "Round to 30/40/15/8/7"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Dividend payers: 50% in VYM and SCHD, plus JNJ, KO, PG, HD and VNQ at 10% each; MSFT dropped",
+     "why": "The two funds give real diversification. Dropping MSFT avoids overlap with the tech and blue-chip examples, and it lets HD, which was recorded for this, be used.",
+     "alternatives": [
+      "Use only one dividend ETF"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Edited tests/unit/test_fake_source.py and tools/record_fixtures.py, outside the examples files",
+     "why": "The fake-source test asserts the exact recorded symbol list. Without the default-list change, a full fixture refresh would leave the new symbols stale.",
+     "alternatives": []
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "c082bed9c661",
+     "hash": "c082bed9c66129bbfcf97dfd5c6d37482e40a9cd",
+     "date": "2026-10-27T15:42:25-04:00",
+     "subject": "Record more price fixtures and complete the example portfolios",
+     "url": "https://github.com/wingware-dev/investaround/commit/c082bed9c66129bbfcf97dfd5c6d37482e40a9cd",
+     "tasks": [
+      "T13 richer-example-fixtures"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "972624c0"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 1938,
+    "output": 9132,
+    "cache_read": 1600914,
+    "cache_write": 19594,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 36,
+      "output": 8968,
+      "cache_read": 1600914,
+      "cache_write_5m": 0,
+      "cache_write_1h": 19594,
+      "web_searches": 0
+     },
+     "claude-haiku-5-5": {
+      "input": 1902,
+      "output": 164,
+      "cache_read": 0,
+      "cache_write_5m": 0,
+      "cache_write_1h": 0,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": []
+  },
+  {
+   "id": "c4e0c2ee-e532-41ec-865f-f5ac3fd59139",
+   "label": "T12",
+   "name": "interest-on-uninvested-cash",
+   "ref": "T12 interest-on-uninvested-cash",
+   "goal": "Paper investing app",
+   "prompt": "Interest on uninvested cash\n\nFollow-up proposed by T5 analytics-engine (6cb78b44). Optionally let cash (waiting DCA money, late-start holdings) earn a fixed or T-bill rate instead of 0%, which currently makes lump sum vs DCA slightly favour lump sum. Code is in investaround/analytics.\n\n[Tasks Manager, 2026-10-27 15:43] Manager: T7 history-backtest-page and T9 learn-strategy-lab are calling investaround.analytics right now. Add the cash rate as an optional keyword that defaults to 0%, so existing calls and results stay unchanged. Don't edit web/, templates/ or static/; the pages can offer the option later.\n\nSee <project>/.TASKS/notes/interest-on-uninvested-cash.md",
+   "origin": "Filed by the Tasks Manager from the plan of T5 analytics-engine",
+   "state": "finished",
+   "started_at": "2026-10-27T15:43:31-04:00",
+   "completed_at": "2026-10-27T15:46:40-04:00",
+   "wall_time_secs": 175,
+   "outcome": "done",
+   "summary": "Uninvested cash can now earn interest through an optional `cash_rate` keyword, defaulting to 0% so existing calls and results are unchanged.\n- `cash_rate` is accepted by `simulate`, `portfolio_value_series`, `buy_and_hold`, `rebalanced`, `dollar_cost_average` and `lump_sum_vs_dca`. It is a fixed yearly fraction (0.04) or a PriceSeries of percent yields such as Yahoo's ^IRX T-bill series.\n- Interest compounds over calendar days on all cash, including money waiting for late-starting holdings. It counts as gain, not as a deposit, and is reported in `ValueSeries.interest` and `Metrics.interest_earned`.\n- Benchmark comparisons give the benchmark's waiting cash the same rate. Lump sum vs DCA's last installment invests all remaining cash, interest included.",
+   "reports": [
+    {
+     "at": "2026-10-27T15:46:16-04:00",
+     "status": "done",
+     "summary": "Uninvested cash can now earn interest through an optional `cash_rate` keyword, defaulting to 0% so existing calls and results are unchanged.\n- `cash_rate` is accepted by `simulate`, `portfolio_value_series`, `buy_and_hold`, `rebalanced`, `dollar_cost_average` and `lump_sum_vs_dca`. It is a fixed yearly fraction (0.04) or a PriceSeries of percent yields such as Yahoo's ^IRX T-bill series.\n- Interest compounds over calendar days on all cash, including money waiting for late-starting holdings. It counts as gain, not as a deposit, and is reported in `ValueSeries.interest` and `Metrics.interest_earned`.\n- Benchmark comparisons give the benchmark's waiting cash the same rate. Lump sum vs DCA's last installment invests all remaining cash, interest included.",
+     "judgement_calls": [
+      {
+       "decision": "A fixed rate is a fraction (0.04); a yield series is in percent (5.0), as Yahoo's ^IRX reports it",
+       "why": "A float in fractions matches the other analytics inputs, and a ^IRX PriceSeries from the price source can be passed straight in without conversion. Both are documented in the performance.py module docstring.",
+       "alternatives": [
+        "Percent for both",
+        "Only a fixed rate"
+       ]
+      },
+      {
+       "decision": "Dates before a yield series' first value earn 0%",
+       "why": "This is the same rule as a holding with no price yet. Nothing is invented for missing data.",
+       "alternatives": [
+        "Back-fill the first yield"
+       ]
+      },
+      {
+       "decision": "Lump sum vs DCA's final installment invests all remaining cash, not just total/months",
+       "why": "Otherwise the interest would sit as cash forever after the money is supposed to be fully invested. With 0% the result is identical to before.",
+       "alternatives": [
+        "Leave the interest as cash"
+       ]
+      },
+      {
+       "decision": "Negative rates down to just above -100% are allowed",
+       "why": "Negative cash rates have existed in real markets; only rates at or below -100% (or non-finite ones) are rejected."
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "A fixed rate is a fraction (0.04); a yield series is in percent (5.0), as Yahoo's ^IRX reports it",
+     "why": "A float in fractions matches the other analytics inputs, and a ^IRX PriceSeries from the price source can be passed straight in without conversion. Both are documented in the performance.py module docstring.",
+     "alternatives": [
+      "Percent for both",
+      "Only a fixed rate"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Dates before a yield series' first value earn 0%",
+     "why": "This is the same rule as a holding with no price yet. Nothing is invented for missing data.",
+     "alternatives": [
+      "Back-fill the first yield"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Lump sum vs DCA's final installment invests all remaining cash, not just total/months",
+     "why": "Otherwise the interest would sit as cash forever after the money is supposed to be fully invested. With 0% the result is identical to before.",
+     "alternatives": [
+      "Leave the interest as cash"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Negative rates down to just above -100% are allowed",
+     "why": "Negative cash rates have existed in real markets; only rates at or below -100% (or non-finite ones) are rejected.",
+     "alternatives": []
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "2a0194fc572f",
+     "hash": "2a0194fc572f337504b97ae08809b9f1af0a2aa4",
+     "date": "2026-10-27T15:46:41-04:00",
+     "subject": "Let uninvested cash earn interest in the analytics engine",
+     "url": "https://github.com/wingware-dev/investaround/commit/2a0194fc572f337504b97ae08809b9f1af0a2aa4",
+     "tasks": [
+      "T12 interest-on-uninvested-cash"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "21c1b2ae"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 40,
+    "output": 16864,
+    "cache_read": 1934108,
+    "cache_write": 28551,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 40,
+      "output": 16864,
+      "cache_read": 1934108,
+      "cache_write_5m": 0,
+      "cache_write_1h": 28551,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": []
+  },
+  {
+   "id": "98ff8da7-ed45-4180-a6dc-ae70817bb510",
+   "label": "T14",
+   "name": "examples-in-strategy-lab",
+   "ref": "T14 examples-in-strategy-lab",
+   "goal": "Paper investing app",
+   "prompt": "Offer example portfolios in the strategy lab\n\nFollow-up from T9 learn-strategy-lab (341d042b), joining it to T8 example-portfolios (5868efa4, committed). Add the example portfolios (investaround.web.examples) to the strategy lab's portfolio picker, perhaps replacing learn.PRESETS, and add a \"Try in the strategy lab\" link on each example card. Update the UI tests, and refresh docs/shots/41-strategy-lab.png and 30-examples.png if they change visibly.",
+   "origin": "Filed by the Tasks Manager from the plan of T9 learn-strategy-lab",
+   "state": "finished",
+   "started_at": "2026-10-27T15:44:36-04:00",
+   "completed_at": "2026-10-27T15:46:27-04:00",
+   "wall_time_secs": 100,
+   "outcome": "done",
+   "summary": "The strategy lab's portfolio picker now offers the eight example portfolios in place of its own presets, and each example card links to the lab with that example chosen:\n- web/learn.py: removed `PRESETS`; the \"Example portfolios\" choices come from `load_examples()` (`?portfolio=example:<id>`), with 60/40 still the default.\n- Examples cards: new \"Try in the strategy lab\" button.\n- Updated UI and unit tests and added new ones; refreshed docs/shots/30-examples.png and 41-strategy-lab.png.",
+   "reports": [
+    {
+     "at": "2026-10-27T15:46:06-04:00",
+     "status": "done",
+     "summary": "The strategy lab's portfolio picker now offers the eight example portfolios in place of its own presets, and each example card links to the lab with that example chosen:\n- web/learn.py: removed `PRESETS`; the \"Example portfolios\" choices come from `load_examples()` (`?portfolio=example:<id>`), with 60/40 still the default.\n- Examples cards: new \"Try in the strategy lab\" button.\n- Updated UI and unit tests and added new ones; refreshed docs/shots/30-examples.png and 41-strategy-lab.png.",
+     "judgement_calls": [
+      {
+       "decision": "Replaced the lab's own presets with the examples, dropping the \"Stocks and gold\" mix",
+       "why": "One list of ready-made portfolios across the app. The gold-and-REIT example covers gold, and three of the four presets were already examples.",
+       "alternatives": [
+        "Keep the presets alongside the examples"
+       ]
+      },
+      {
+       "decision": "Old ?portfolio=preset:<id> links fall back to the default 60/40",
+       "why": "The lab was committed only shortly before, so no one has bookmarks worth keeping, and unknown choices already fall back to the default.",
+       "alternatives": [
+        "Map preset:<id> to example:<id>"
+       ]
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "Replaced the lab's own presets with the examples, dropping the \"Stocks and gold\" mix",
+     "why": "One list of ready-made portfolios across the app. The gold-and-REIT example covers gold, and three of the four presets were already examples.",
+     "alternatives": [
+      "Keep the presets alongside the examples"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Old ?portfolio=preset:<id> links fall back to the default 60/40",
+     "why": "The lab was committed only shortly before, so no one has bookmarks worth keeping, and unknown choices already fall back to the default.",
+     "alternatives": [
+      "Map preset:<id> to example:<id>"
+     ]
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "041823065e47",
+     "hash": "041823065e473eaf9e205ec4c5606560f8511986",
+     "date": "2026-10-27T15:46:27-04:00",
+     "subject": "Offer the example portfolios in the strategy lab",
+     "url": "https://github.com/wingware-dev/investaround/commit/041823065e473eaf9e205ec4c5606560f8511986",
+     "tasks": [
+      "T14 examples-in-strategy-lab"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "4e3aa163"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 2111,
+    "output": 7379,
+    "cache_read": 1776270,
+    "cache_write": 17327,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 34,
+      "output": 7360,
+      "cache_read": 1776270,
+      "cache_write_5m": 0,
+      "cache_write_1h": 17327,
+      "web_searches": 0
+     },
+     "claude-haiku-5-5": {
+      "input": 2077,
+      "output": 19,
+      "cache_read": 0,
+      "cache_write_5m": 0,
+      "cache_write_1h": 0,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": []
+  },
+  {
+   "id": "f91681c3-ff74-4cb0-9ae5-b5e7e75bf5b3",
+   "label": "T10",
+   "name": "home-dashboard-docs",
+   "ref": "T10 home-dashboard-docs",
+   "goal": "Paper investing app",
+   "prompt": "Paper investing app step 9: home dashboard, integration and docs\n\nFrom the accepted plan of T1 new-investing-want-software (691d1322); full design in .TASKS/notes/i-m-new-to-investing-and-want-some-software-so-i-can-try.md. Runs after steps 5-8.\n\nHome shows all portfolios with today's change and a sparkline, plus a \"start here\" path (examples, build, watch, history, learn). Adds the data-source status and error banner and a README (install, run, data-source caveat, where data is stored). Regenerates the full docs/shots/ set with tools/shots.py and reviews every image. Runs a final live manual check with the real Yahoo source (read-only GETs, developer step, not a test).\nOwns: web/home.py, templates~ README.md, tools/shots/home.py. Shares: templates/base.html, static/css/app.css, docs/shots/.\n\nCommit a screenshot of each major visible change under docs/shots/ (the user wants a publishable trace).\n\n[Tasks Manager, 2026-10-27 15:39] Manager, from T8 example-portfolios (5868efa4): as part of integration, change POST /examples/<id>/try (or the link in its \"Added …\" notice) to go to the new portfolio's own watch page from T6, not to /portfolios/.\n\n[Tasks Manager, 2026-10-27 15:44] Manager, from T9 learn-strategy-lab (341d042b): link /learn/ (lessons) and /learn/lab (strategy lab) from the home dashboard's \"start here\" path.\n\n[Tasks Manager, 2026-10-27 15:45] Manager, from T6 portfolio-builder-watch (b0a3ff12): for each portfolio's value, today's change and gain, call investaround.web.portfolios.value_portfolio(p, prices) instead of computing them again.\n\nSee <project>/.TASKS/notes/paper-investing-app-step-9-home-dashboard-integration-a.md",
+   "origin": "Filed by the Tasks Manager from the plan of T1 new-investing-want-software, at the user's request",
+   "state": "finished",
+   "started_at": "2026-10-27T15:46:48-04:00",
+   "completed_at": "2026-10-27T15:52:54-04:00",
+   "wall_time_secs": 351,
+   "outcome": "done",
+   "summary": "Added the home dashboard, the price-source status and error banner, and a README, and sent \"Try it as my portfolio\" to the new portfolio's watch page.\n- Home lists every portfolio with value, today's change and gain (from `value_portfolio`), a 3-month SVG sparkline, totals, and a 6-step \"start here\" path (examples, build, watch, history, learn, strategy lab).\n- The home page shows where prices come from and how fresh they are, with an error banner when prices can't be fetched.\n- `POST /examples/<id>/try` now redirects to the new portfolio's watch page; the unused \"Added …\" notice is gone.\n- README covers install, run, the Yahoo data-source caveat and where data is stored.\n- Added shots 50-home-dashboard, 51-home-first-visit and 52-home-price-error and regenerated the rest (only 10 and 11 changed, in their timestamps); reviewed every image.\n- Live check against real Yahoo, in a temp data dir: home, watch, history, examples and search all worked, with no JS errors and matching values.",
+   "reports": [
+    {
+     "at": "2026-10-27T15:52:27-04:00",
+     "status": "done",
+     "summary": "Added the home dashboard, the price-source status and error banner, and a README, and sent \"Try it as my portfolio\" to the new portfolio's watch page.\n- Home lists every portfolio with value, today's change and gain (from `value_portfolio`), a 3-month SVG sparkline, totals, and a 6-step \"start here\" path (examples, build, watch, history, learn, strategy lab).\n- The home page shows where prices come from and how fresh they are, with an error banner when prices can't be fetched.\n- `POST /examples/<id>/try` now redirects to the new portfolio's watch page; the unused \"Added …\" notice is gone.\n- README covers install, run, the Yahoo data-source caveat and where data is stored.\n- Added shots 50-home-dashboard, 51-home-first-visit and 52-home-price-error and regenerated the rest (only 10 and 11 changed, in their timestamps); reviewed every image.\n- Live check against real Yahoo, in a temp data dir: home, watch, history, examples and search all worked, with no JS errors and matching values.",
+     "judgement_calls": [
+      {
+       "decision": "Sparkline shows the current holdings over the last 91 days",
+       "why": "Most portfolios are new, so a 'since start' line would often be one or two points; 3 months always gives a readable trend. The column header and tooltip say so.",
+       "alternatives": [
+        "Since the portfolio's start date",
+        "Last 30 days"
+       ]
+      },
+      {
+       "decision": "Did not regenerate 01-home-skeleton.png",
+       "why": "It records the skeleton stage for the publishable trace; regenerating it would overwrite that with the new dashboard under a 'skeleton' name. The new home is in 50-52.",
+       "alternatives": [
+        "Regenerate it too",
+        "Delete the skeleton shot"
+       ]
+      },
+      {
+       "decision": "Status and error banner are on the home page only",
+       "why": "Every other page already handles price errors its own way (the 503 error page, the watch-page error, per-card notices). A site-wide banner would need a change to how app.py tracks the price source's state.",
+       "alternatives": [
+        "Track the last price failure in app.py and show it on every page"
+       ]
+      },
+      {
+       "decision": "Removed the examples page's 'Added …' notice",
+       "why": "The try button now goes straight to the new portfolio's watch page (Manager request from T8), so nothing used the notice. The watch page's notes already say 'Copied from the … example.'",
+       "alternatives": [
+        "Keep the notice and show it on the watch page"
+       ]
+      },
+      {
+       "decision": "Home shots are numbered 5x",
+       "why": "Shot names are grouped by feature; I documented 5x for the home dashboard in tools/shots/__init__.py.",
+       "alternatives": [
+        "02-home-*"
+       ]
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "Sparkline shows the current holdings over the last 91 days",
+     "why": "Most portfolios are new, so a 'since start' line would often be one or two points; 3 months always gives a readable trend. The column header and tooltip say so.",
+     "alternatives": [
+      "Since the portfolio's start date",
+      "Last 30 days"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Did not regenerate 01-home-skeleton.png",
+     "why": "It records the skeleton stage for the publishable trace; regenerating it would overwrite that with the new dashboard under a 'skeleton' name. The new home is in 50-52.",
+     "alternatives": [
+      "Regenerate it too",
+      "Delete the skeleton shot"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Status and error banner are on the home page only",
+     "why": "Every other page already handles price errors its own way (the 503 error page, the watch-page error, per-card notices). A site-wide banner would need a change to how app.py tracks the price source's state.",
+     "alternatives": [
+      "Track the last price failure in app.py and show it on every page"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Removed the examples page's 'Added …' notice",
+     "why": "The try button now goes straight to the new portfolio's watch page (Manager request from T8), so nothing used the notice. The watch page's notes already say 'Copied from the … example.'",
+     "alternatives": [
+      "Keep the notice and show it on the watch page"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Home shots are numbered 5x",
+     "why": "Shot names are grouped by feature; I documented 5x for the home dashboard in tools/shots/__init__.py.",
+     "alternatives": [
+      "02-home-*"
+     ]
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "2cc5ced41921",
+     "hash": "2cc5ced41921e3c15dc66dc76ee5b6cf597abe96",
+     "date": "2026-10-27T15:52:55-04:00",
+     "subject": "Add home dashboard, price-source status banner and README",
+     "url": "https://github.com/wingware-dev/investaround/commit/2cc5ced41921e3c15dc66dc76ee5b6cf597abe96",
+     "tasks": [
+      "T10 home-dashboard-docs"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "53c9b0a2"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 2216,
+    "output": 28633,
+    "cache_read": 4006471,
+    "cache_write": 127323,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 96,
+      "output": 28612,
+      "cache_read": 4006471,
+      "cache_write_5m": 0,
+      "cache_write_1h": 127323,
+      "web_searches": 0
+     },
+     "claude-haiku-5-5": {
+      "input": 2120,
+      "output": 21,
+      "cache_read": 0,
+      "cache_write_5m": 0,
+      "cache_write_1h": 0,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": [
+    {
+     "path": "docs/shots/50-home-dashboard.png",
+     "revision": "2cc5ced41921",
+     "link": "https://github.com/wingware-dev/investaround/raw/2cc5ced41921e3c15dc66dc76ee5b6cf597abe96/docs/shots/50-home-dashboard.png"
+    },
+    {
+     "path": "docs/shots/51-home-first-visit.png",
+     "revision": "2cc5ced41921",
+     "link": "https://github.com/wingware-dev/investaround/raw/2cc5ced41921e3c15dc66dc76ee5b6cf597abe96/docs/shots/51-home-first-visit.png"
+    },
+    {
+     "path": "docs/shots/52-home-price-error.png",
+     "revision": "2cc5ced41921",
+     "link": "https://github.com/wingware-dev/investaround/raw/2cc5ced41921e3c15dc66dc76ee5b6cf597abe96/docs/shots/52-home-price-error.png"
+    }
+   ]
+  },
+  {
+   "id": "11a3e561-0947-41b3-8dda-4b3200c93589",
+   "label": "T20",
+   "name": "irx-tbill-fixture",
+   "ref": "T20 irx-tbill-fixture",
+   "goal": "Paper investing app",
+   "prompt": "Record a ^IRX T-bill yield fixture\n\nFollow-up from T12 interest-on-uninvested-cash (c4e0c2ee). Add ^IRX to tools/record_fixtures.py and record it into tests/fixtures/prices (live, developer-run, read-only Yahoo GETs), so the \"cash earns T-bill rates\" path is tested with real data rather than synthetic only.",
+   "origin": "Filed by the Tasks Manager from the plan of T12 interest-on-uninvested-cash",
+   "state": "finished",
+   "started_at": "2026-10-27T15:46:59-04:00",
+   "completed_at": "2026-10-27T15:48:48-04:00",
+   "wall_time_secs": 97,
+   "outcome": "done",
+   "summary": "Recorded real 13-week T-bill yields (^IRX) as a price fixture, so interest on uninvested cash is now tested with real data.\n- Added ^IRX to tools/record_fixtures.py. I ran it live for ^IRX only: one read-only Yahoo GET recorded tests/fixtures/prices/^IRX.csv (5,484 daily yields in percent, 2005-01-03 to 2026-10-27). quotes.json only gained the ^IRX entry; its recording date and as_of are unchanged.\n- tests/unit/test_performance.py adds real-yield tests. 2023 cash interest falls between that year's lowest and highest yield. 2021's near-zero yields earn almost nothing. Lump sum vs DCA's waiting money earns T-bill interest.\n- Added ^IRX to the pinned symbol list in tests/unit/test_fake_source.py.",
+   "reports": [
+    {
+     "at": "2026-10-27T15:48:28-04:00",
+     "status": "done",
+     "summary": "Recorded real 13-week T-bill yields (^IRX) as a price fixture, so interest on uninvested cash is now tested with real data.\n- Added ^IRX to tools/record_fixtures.py. I ran it live for ^IRX only: one read-only Yahoo GET recorded tests/fixtures/prices/^IRX.csv (5,484 daily yields in percent, 2005-01-03 to 2026-10-27). quotes.json only gained the ^IRX entry; its recording date and as_of are unchanged.\n- tests/unit/test_performance.py adds real-yield tests. 2023 cash interest falls between that year's lowest and highest yield. 2021's near-zero yields earn almost nothing. Lump sum vs DCA's waiting money earns T-bill interest.\n- Added ^IRX to the pinned symbol list in tests/unit/test_fake_source.py.",
+     "judgement_calls": [
+      {
+       "decision": "Re-recorded only ^IRX, not all symbols",
+       "why": "Re-running for every symbol would have rewritten the other 25 fixtures and changed results other tasks' tests depend on. Running with just ^IRX kept the rest of quotes.json and the frozen as_of date as they were.",
+       "alternatives": [
+        "Refresh every fixture"
+       ]
+      },
+      {
+       "decision": "^IRX is a normal FakePriceSource symbol, with a quote entry and a file named ^IRX.csv",
+       "why": "FakePriceSource only knows symbols that have a quote entry. The yields therefore load through src.history('^IRX') like any price, and ^IRX now shows in fake-source search for terms like 'treasury'. No existing search test is affected.",
+       "alternatives": [
+        "Keep the yield series outside the price fixtures with its own loader"
+       ]
+      },
+      {
+       "decision": "Edited tests/unit/test_fake_source.py (from step 1) to add ^IRX to its exact symbol list",
+       "why": "That test pins the full set of recorded symbols, so adding the fixture would otherwise break it."
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "Re-recorded only ^IRX, not all symbols",
+     "why": "Re-running for every symbol would have rewritten the other 25 fixtures and changed results other tasks' tests depend on. Running with just ^IRX kept the rest of quotes.json and the frozen as_of date as they were.",
+     "alternatives": [
+      "Refresh every fixture"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "^IRX is a normal FakePriceSource symbol, with a quote entry and a file named ^IRX.csv",
+     "why": "FakePriceSource only knows symbols that have a quote entry. The yields therefore load through src.history('^IRX') like any price, and ^IRX now shows in fake-source search for terms like 'treasury'. No existing search test is affected.",
+     "alternatives": [
+      "Keep the yield series outside the price fixtures with its own loader"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Edited tests/unit/test_fake_source.py (from step 1) to add ^IRX to its exact symbol list",
+     "why": "That test pins the full set of recorded symbols, so adding the fixture would otherwise break it.",
+     "alternatives": []
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "2f1ae55126c1",
+     "hash": "2f1ae55126c145eeb8ad5d6a786d22f39a346086",
+     "date": "2026-10-27T15:48:49-04:00",
+     "subject": "Record ^IRX T-bill yield fixture and test cash interest on real yields",
+     "url": "https://github.com/wingware-dev/investaround/commit/2f1ae55126c145eeb8ad5d6a786d22f39a346086",
+     "tasks": [
+      "T20 irx-tbill-fixture"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "21c1b2ae"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 30,
+    "output": 7676,
+    "cache_read": 1669372,
+    "cache_write": 15385,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 30,
+      "output": 7676,
+      "cache_read": 1669372,
+      "cache_write_5m": 0,
+      "cache_write_1h": 15385,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": []
+  },
+  {
+   "id": "f1d47860-7ae7-43d2-92bc-4174d90d3103",
+   "label": "T19",
+   "name": "cash-rate-option-in-pages",
+   "ref": "T19 cash-rate-option-in-pages",
+   "goal": "Paper investing app",
+   "prompt": "Offer the cash rate on the history page and strategy lab\n\nFollow-up from T12 interest-on-uninvested-cash (c4e0c2ee), which added cash_rate to investaround.analytics but no way to choose it. Add a \"cash earns\" option (0%, a fixed %, or T-bill) to web/history.py and web/learn.py, pass cash_rate through, and show Metrics.interest_earned. Update the UI tests and the history and strategy-lab screenshots in docs/shots/.\n\n[Tasks Manager, 2026-10-27 15:52] Manager, from T10 home-dashboard-docs (f91681c3): the strategy lab's \"what this shows\" text still says waiting money \"earns nothing (0%)\". Once the cash option exists, make that text match the chosen rate. The T-bill choice can use the ^IRX fixture that T20 irx-tbill-fixture recorded (tests/fixtures/prices/^IRX.csv, committed in 2f1ae55).",
+   "origin": "Filed by the Tasks Manager from the plan of T12 interest-on-uninvested-cash",
+   "state": "finished",
+   "started_at": "2026-10-27T15:53:10-04:00",
+   "completed_at": "2026-10-27T16:00:45-04:00",
+   "wall_time_secs": 441,
+   "outcome": "done",
+   "summary": "The history page and the strategy lab now have a \"Waiting cash earns\" option: nothing (0%, the default), a fixed rate, or Treasury bill rates from ^IRX. The interest earned is shown on both pages.\n- The new `web/cash.py` reads the `cash` and `cash_rate` query parameters for both pages, validates fixed rates from 0 to 20%, and turns the choice into the analytics `cash_rate`. If T-bill rates can't be fetched, it falls back to 0% with a note. The T-bill rate shown is the average yield weighted by the cash actually waiting each day.\n- History page: when cash earns something, the metrics table gets an \"Interest on cash\" row and the \"Good to know\" box says what the cash earned.\n- Strategy lab: the spread-out card's description, a new \"Interest on cash\" row and the \"What this shows\" text now match the chosen rate. At 0% it still says waiting money earns nothing.\n- The rate box is shown, and submitted, only when \"A fixed rate\" is picked.\n- Added unit and UI tests, and regenerated docs/shots 20-history-10y, 21-history-2008 (now with T-bill rates) and 41-strategy-lab (now with 4% a year).",
+   "reports": [
+    {
+     "at": "2026-10-27T16:00:20-04:00",
+     "status": "done",
+     "summary": "The history page and the strategy lab now have a \"Waiting cash earns\" option: nothing (0%, the default), a fixed rate, or Treasury bill rates from ^IRX. The interest earned is shown on both pages.\n- The new `web/cash.py` reads the `cash` and `cash_rate` query parameters for both pages, validates fixed rates from 0 to 20%, and turns the choice into the analytics `cash_rate`. If T-bill rates can't be fetched, it falls back to 0% with a note. The T-bill rate shown is the average yield weighted by the cash actually waiting each day.\n- History page: when cash earns something, the metrics table gets an \"Interest on cash\" row and the \"Good to know\" box says what the cash earned.\n- Strategy lab: the spread-out card's description, a new \"Interest on cash\" row and the \"What this shows\" text now match the chosen rate. At 0% it still says waiting money earns nothing.\n- The rate box is shown, and submitted, only when \"A fixed rate\" is picked.\n- Added unit and UI tests, and regenerated docs/shots 20-history-10y, 21-history-2008 (now with T-bill rates) and 41-strategy-lab (now with 4% a year).",
+     "judgement_calls": [
+      {
+       "decision": "The T-bill rate is described as the yield averaged over the days cash waited, weighted by how much cash waited",
+       "why": "Averaging over the whole range said '2.4% a year' for a 10-year lab run where cash only waited during the first year, at about 0.6%. The weighted figure matches the interest actually shown.",
+       "alternatives": [
+        "Plain average over the whole range",
+        "Name no number, only 'Treasury bill rates'"
+       ]
+      },
+      {
+       "decision": "If T-bill rates can't be fetched, or there are none for the dates, the page runs at 0% and says so instead of failing",
+       "why": "A short outage of the unofficial Yahoo source shouldn't hide the whole backtest. An invalid fixed rate, by contrast, is the user's input, so the page shows a field error and doesn't run.",
+       "alternatives": [
+        "Show an error and run nothing"
+       ]
+      },
+      {
+       "decision": "The \"Interest on cash\" row appears only when cash earns something, and then on every column and card, including $0 ones",
+       "why": "With 0% the pages look exactly as before, so existing tests and shots are unaffected. When cash earns, the $0 figures make clear that only waiting money earns interest.",
+       "alternatives": [
+        "Always show the row",
+        "Show it only where interest is above zero"
+       ]
+      },
+      {
+       "decision": "Fixed rates are limited to 0-20% a year in the UI, defaulting to 4%",
+       "why": "Keeps out typos such as 40 meant as 4.0. Negative rates are allowed by the engine but not offered to beginners.",
+       "alternatives": [
+        "Allow negative rates",
+        "No upper limit"
+       ]
+      },
+      {
+       "decision": "Shots 21-history-2008 and 41-strategy-lab now show the option turned on; 20-history-10y shows the default",
+       "why": "The task asked to update these screenshots. In 2008, VXUS's late start is where waiting cash matters, and the lab is where the comparison changes.",
+       "alternatives": [
+        "Add new shots and keep the old ones as they were"
+       ]
+      },
+      {
+       "decision": "The lab's 0% explanation now ends by pointing to the new option",
+       "why": "The T10 relay asked for the text to match the chosen rate. The 0% wording keeps 'earns nothing (0%)' and adds 'Try a fixed rate or Treasury bill rates under “Waiting cash earns”.'"
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "The T-bill rate is described as the yield averaged over the days cash waited, weighted by how much cash waited",
+     "why": "Averaging over the whole range said '2.4% a year' for a 10-year lab run where cash only waited during the first year, at about 0.6%. The weighted figure matches the interest actually shown.",
+     "alternatives": [
+      "Plain average over the whole range",
+      "Name no number, only 'Treasury bill rates'"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "If T-bill rates can't be fetched, or there are none for the dates, the page runs at 0% and says so instead of failing",
+     "why": "A short outage of the unofficial Yahoo source shouldn't hide the whole backtest. An invalid fixed rate, by contrast, is the user's input, so the page shows a field error and doesn't run.",
+     "alternatives": [
+      "Show an error and run nothing"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "The \"Interest on cash\" row appears only when cash earns something, and then on every column and card, including $0 ones",
+     "why": "With 0% the pages look exactly as before, so existing tests and shots are unaffected. When cash earns, the $0 figures make clear that only waiting money earns interest.",
+     "alternatives": [
+      "Always show the row",
+      "Show it only where interest is above zero"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Fixed rates are limited to 0-20% a year in the UI, defaulting to 4%",
+     "why": "Keeps out typos such as 40 meant as 4.0. Negative rates are allowed by the engine but not offered to beginners.",
+     "alternatives": [
+      "Allow negative rates",
+      "No upper limit"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Shots 21-history-2008 and 41-strategy-lab now show the option turned on; 20-history-10y shows the default",
+     "why": "The task asked to update these screenshots. In 2008, VXUS's late start is where waiting cash matters, and the lab is where the comparison changes.",
+     "alternatives": [
+      "Add new shots and keep the old ones as they were"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "The lab's 0% explanation now ends by pointing to the new option",
+     "why": "The T10 relay asked for the text to match the chosen rate. The 0% wording keeps 'earns nothing (0%)' and adds 'Try a fixed rate or Treasury bill rates under “Waiting cash earns”.'",
+     "alternatives": []
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "347320221c6d",
+     "hash": "347320221c6d9d3037001505c2f9b9be31c52619",
+     "date": "2026-10-27T16:00:45-04:00",
+     "subject": "Offer a \"Waiting cash earns\" option on the history page and strategy lab",
+     "url": "https://github.com/wingware-dev/investaround/commit/347320221c6d9d3037001505c2f9b9be31c52619",
+     "tasks": [
+      "T19 cash-rate-option-in-pages"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "21c1b2ae"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 1880,
+    "output": 32382,
+    "cache_read": 5870234,
+    "cache_write": 88112,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 68,
+      "output": 32363,
+      "cache_read": 5870234,
+      "cache_write_5m": 0,
+      "cache_write_1h": 88112,
+      "web_searches": 0
+     },
+     "claude-haiku-5-5": {
+      "input": 1812,
+      "output": 19,
+      "cache_read": 0,
+      "cache_write_5m": 0,
+      "cache_write_1h": 0,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": []
+  },
+  {
+   "id": "26fac9e9-22ed-48a0-b4a4-4d08ac6fa5fc",
+   "label": "T15",
+   "name": "store-purchase-prices",
+   "ref": "T15 store-purchase-prices",
+   "goal": "Paper investing app",
+   "prompt": "Store purchase prices on holdings\n\nFollow-up proposed by T6 portfolio-builder-watch (b0a3ff12). Record each holding's start price and date in the Portfolio model (investaround/models.py, storage.py) when it is created. Gains would then not depend on fetching history around the creation date, and a shares view becomes possible.\n\n[Tasks Manager, 2026-10-27 15:58] Manager: T19 cash-rate-option-in-pages is changing web/history.py, web/learn.py and their screenshots at the same time, so stay out of those files. Portfolios saved without start prices must still load, so make the new fields optional in storage.",
+   "origin": "Filed by the Tasks Manager from the plan of T6 portfolio-builder-watch",
+   "state": "finished",
+   "started_at": "2026-10-27T15:58:08-04:00",
+   "completed_at": "2026-10-27T16:01:17-04:00",
+   "wall_time_secs": 181,
+   "outcome": "done",
+   "summary": "Holdings now record the price and date they were \"bought\" at:\n- `Holding` has optional `start_price` and `start_date`, set together and saved in portfolios.json only when present. Portfolios saved without them still load.\n- Creating a portfolio records them, and so does an edit that changes investments or weights. Renaming or editing notes keeps them. Portfolios saved before this change, or copied from an example, get them on first view of My portfolios or the watch page.\n- Gains are computed from the start day's price bar, re-fetched for that exact day so later dividends and splits still count. If the bar can't be fetched, the recorded price is used, so gains no longer depend on searching history around the creation date.\n- The watch table now shows the share count and \"bought at\" price under each holding. Screenshot 11-watch-portfolio.png is regenerated, and model, storage, valuation and UI tests are added.",
+   "reports": [
+    {
+     "at": "2026-10-27T16:01:01-04:00",
+     "status": "done",
+     "summary": "Holdings now record the price and date they were \"bought\" at:\n- `Holding` has optional `start_price` and `start_date`, set together and saved in portfolios.json only when present. Portfolios saved without them still load.\n- Creating a portfolio records them, and so does an edit that changes investments or weights. Renaming or editing notes keeps them. Portfolios saved before this change, or copied from an example, get them on first view of My portfolios or the watch page.\n- Gains are computed from the start day's price bar, re-fetched for that exact day so later dividends and splits still count. If the bar can't be fetched, the recorded price is used, so gains no longer depend on searching history around the creation date.\n- The watch table now shows the share count and \"bought at\" price under each holding. Screenshot 11-watch-portfolio.png is regenerated, and model, storage, valuation and UI tests are added.",
+     "judgement_calls": [
+      {
+       "decision": "Re-fetch the start day's price bar instead of relying only on the stored price",
+       "why": "Yahoo's close is split-adjusted after the fact, and the adjusted close changes with each dividend. A stored price alone would show a split as a crash and leave dividends out. The stored date makes the fetch exact, a single day with no lookback guessing, and the stored price is the fallback.",
+       "alternatives": [
+        "Use only the stored price (no dividends, and wrong after a split)"
+       ]
+      },
+      {
+       "decision": "Record missing start prices the first time a portfolio is viewed, saving to the store during a page load",
+       "why": "Portfolios saved earlier, and those copied from Examples (which build Portfolio objects themselves), would otherwise keep using the history lookup. Recording on first view fixes their start once without touching examples.py.",
+       "alternatives": [
+        "Have examples.py record them when copying",
+        "Never backfill old portfolios"
+       ]
+      },
+      {
+       "decision": "Show share count and 'bought at' price on the watch table",
+       "why": "This is the shares view the follow-up mentioned. It is shown as small text under Weight and Price, so the table layout stays the same."
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "Re-fetch the start day's price bar instead of relying only on the stored price",
+     "why": "Yahoo's close is split-adjusted after the fact, and the adjusted close changes with each dividend. A stored price alone would show a split as a crash and leave dividends out. The stored date makes the fetch exact, a single day with no lookback guessing, and the stored price is the fallback.",
+     "alternatives": [
+      "Use only the stored price (no dividends, and wrong after a split)"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Record missing start prices the first time a portfolio is viewed, saving to the store during a page load",
+     "why": "Portfolios saved earlier, and those copied from Examples (which build Portfolio objects themselves), would otherwise keep using the history lookup. Recording on first view fixes their start once without touching examples.py.",
+     "alternatives": [
+      "Have examples.py record them when copying",
+      "Never backfill old portfolios"
+     ]
+    },
+    {
+     "report": 1,
+     "decision": "Show share count and 'bought at' price on the watch table",
+     "why": "This is the shares view the follow-up mentioned. It is shown as small text under Weight and Price, so the table layout stays the same.",
+     "alternatives": []
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "08f02824bfc7",
+     "hash": "08f02824bfc7570852788b6a390239bdb6fa1dc4",
+     "date": "2026-10-27T16:01:18-04:00",
+     "subject": "Record each holding's purchase price and date",
+     "url": "https://github.com/wingware-dev/investaround/commit/08f02824bfc7570852788b6a390239bdb6fa1dc4",
+     "tasks": [
+      "T15 store-purchase-prices"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "74b71a32"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 1954,
+    "output": 16300,
+    "cache_read": 3660733,
+    "cache_write": 25460,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 56,
+      "output": 16278,
+      "cache_read": 3660733,
+      "cache_write_5m": 0,
+      "cache_write_1h": 25460,
+      "web_searches": 0
+     },
+     "claude-haiku-5-5": {
+      "input": 1898,
+      "output": 22,
+      "cache_read": 0,
+      "cache_write_5m": 0,
+      "cache_write_1h": 0,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": []
+  },
+  {
+   "id": "1eb7461b-0347-41dd-92bb-e148412485d5",
+   "label": "T18",
+   "name": "regression-tests-paper-app",
+   "ref": "T18 regression-tests-paper-app",
+   "goal": "Paper investing app",
+   "prompt": "Regression tests for the paper investing app build\\n\\nA sweep under wing_guide topic 'research' over the work of T2-T20: the paper investing app plan steps and their follow-ups, including the cash interest work in T12, T19 and T20. Each worker ran only its own tests, and several pages share the nav, the base template and the shot registry. Make one test_run (wing-testing) per batch: tests/unit, then tests/ui. File each failure with report_finding (next_step fix); don't fix anything here.\n\nSee <project>/.TASKS/notes/regression-tests-for-the-paper-investing-app-build-n-na-s.md",
+   "origin": "Filed by the Tasks Manager",
+   "state": "needs-review",
+   "started_at": "2026-10-27T16:01:34-04:00",
+   "completed_at": "2026-10-27T16:02:49-04:00",
+   "wall_time_secs": 75.0,
+   "outcome": "done",
+   "summary": "Regression sweep over the paper investing app work (T2-T20, including the cash interest work in T12, T19, T20) found no failures.\n- tests/unit: 297 passed (run 1793131304710)\n- tests/ui: 46 passed (run 1793131311602)\n- No findings filed; nothing fixed in place.",
+   "reports": [
+    {
+     "at": "2026-10-27T16:02:43-04:00",
+     "status": "done",
+     "summary": "Regression sweep over the paper investing app work (T2-T20, including the cash interest work in T12, T19, T20) found no failures.\n- tests/unit: 297 passed (run 1793131304710)\n- tests/ui: 46 passed (run 1793131311602)\n- No findings filed; nothing fixed in place.",
+     "judgement_calls": [],
+     "verdict": "pass"
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [],
+   "findings": [],
+   "commits": [],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "33946618"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 1745,
+    "output": 1298,
+    "cache_read": 164083,
+    "cache_write": 18983,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 14,
+      "output": 1279,
+      "cache_read": 164083,
+      "cache_write_5m": 0,
+      "cache_write_1h": 18983,
+      "web_searches": 0
+     },
+     "claude-haiku-5-5": {
+      "input": 1731,
+      "output": 19,
+      "cache_read": 0,
+      "cache_write_5m": 0,
+      "cache_write_1h": 0,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": []
+  },
+  {
+   "id": "fd086c8f-9428-4739-9c38-10bf05b82cb7",
+   "label": "T22",
+   "name": "run-set-main-entry",
+   "ref": "T22 run-set-main-entry",
+   "goal": "Ungrouped Tasks",
+   "prompt": "How do I run this?  Can you set the main entry point in Wing?\n\nSee <project>/.TASKS/notes/how-do-i-run-this-can-you-set-the-main-entry-point-in-w.md",
+   "origin": "Written by the user",
+   "state": "needs-review",
+   "started_at": null,
+   "completed_at": "2026-10-27T16:11:10-04:00",
+   "wall_time_secs": null,
+   "outcome": "done",
+   "summary": "The main entry point is already set to investaround/__main__.py, so Wing's Debug or Run (with no other file chosen) starts the app at http://127.0.0.1:8765/ and opens it in your browser. From a terminal, run `.venv/bin/python -m investaround`. The README's Run section lists the options, such as `--source fake` for offline sample prices. I haven't launched it from Wing myself. If Wing reports an ImportError about relative imports (that file uses `from .app import ...`), make T22 Ready again and I'll file a task to add a small top-level launcher script and point the entry point at it.",
+   "reports": [
+    {
+     "at": "2026-10-27T16:11:00-04:00",
+     "status": "done",
+     "summary": "The main entry point is already set to investaround/__main__.py, so Wing's Debug or Run (with no other file chosen) starts the app at http://127.0.0.1:8765/ and opens it in your browser. From a terminal, run `.venv/bin/python -m investaround`. The README's Run section lists the options, such as `--source fake` for offline sample prices. I haven't launched it from Wing myself. If Wing reports an ImportError about relative imports (that file uses `from .app import ...`), make T22 Ready again and I'll file a task to add a small top-level launcher script and point the entry point at it.",
+     "judgement_calls": [],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [],
+   "findings": [],
+   "commits": [],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 0,
+   "sessions": [],
+   "source": "store",
+   "usage": {
+    "input": 0,
+    "output": 0,
+    "cache_read": 0,
+    "cache_write": 0,
+    "models": {},
+    "unpriced": []
+   },
+   "shots": []
+  },
+  {
+   "id": "cca554f9-c241-461c-8f7e-03e356d38dec",
+   "label": "T23",
+   "name": "running-wing-doesn-work",
+   "ref": "T23 running-wing-doesn-work",
+   "goal": "Ungrouped Tasks",
+   "prompt": "Running in Wing doesn't work:\n￼ File \"<project>/investaround/__main__.py\", line 9, in <module>\n  from .app import create_app\n\nbuiltins.ImportError: attempted relative import with no known parent package\n\n[Tasks Manager, 2026-10-27 16:12] Manager: Wing runs investaround/__main__.py as a plain file, so its relative import fails. Add a small top-level launcher, e.g. run_investaround.py at the project root, that calls investaround.__main__.main(), and create it with create_tracked_file. Then set Wing's main_entry_point to it with project_set. Don't change investaround/__main__.py: `python -m investaround` must keep working. Check both ways start the server, using --no-browser --source fake on a spare port and a real HTTP request, then stop them. Mention the launcher in the README's Run section.",
+   "origin": "Written by the user",
+   "state": "finished",
+   "started_at": "2026-10-27T16:12:46-04:00",
+   "completed_at": "2026-10-27T16:13:26-04:00",
+   "wall_time_secs": 29,
+   "outcome": "done",
+   "summary": "Added a top-level launcher so Wing can run the app:\n- New `run_investaround.py` at the project root calls `investaround.__main__.main()`. Wing ran `investaround/__main__.py` as a plain file, so its relative import failed.\n- Changed Wing's main entry point to the launcher. `investaround/__main__.py` is unchanged.\n- Added the launcher to the README's Run section.\n- Checked `python -m investaround` and `python run_investaround.py` (also run from another cwd) with `--no-browser --source fake` on spare ports. Each answered a real HTTP request with 200, then I stopped it.",
+   "reports": [
+    {
+     "at": "2026-10-27T16:13:08-04:00",
+     "status": "done",
+     "summary": "Added a top-level launcher so Wing can run the app:\n- New `run_investaround.py` at the project root calls `investaround.__main__.main()`. Wing ran `investaround/__main__.py` as a plain file, so its relative import failed.\n- Changed Wing's main entry point to the launcher. `investaround/__main__.py` is unchanged.\n- Added the launcher to the README's Run section.\n- Checked `python -m investaround` and `python run_investaround.py` (also run from another cwd) with `--no-browser --source fake` on spare ports. Each answered a real HTTP request with 200, then I stopped it.",
+     "judgement_calls": [
+      {
+       "decision": "Launcher named run_investaround.py, at the project root",
+       "why": "This is the name the Tasks Manager suggested. At the root the package imports without any sys.path changes."
+      }
+     ],
+     "verdict": null
+    }
+   ],
+   "questions": [],
+   "escalations": [],
+   "judgement_calls": [
+    {
+     "report": 1,
+     "decision": "Launcher named run_investaround.py, at the project root",
+     "why": "This is the name the Tasks Manager suggested. At the root the package imports without any sys.path changes.",
+     "alternatives": []
+    }
+   ],
+   "findings": [],
+   "commits": [
+    {
+     "revision": "5a0f7b5cb767",
+     "hash": "5a0f7b5cb767dfadf955f17929c21a5b29fb2457",
+     "date": "2026-10-27T16:13:27-04:00",
+     "subject": "Add run_investaround.py launcher so Wing can run the app",
+     "url": "https://github.com/wingware-dev/investaround/commit/5a0f7b5cb767dfadf955f17929c21a5b29fb2457",
+     "tasks": [
+      "T23 running-wing-doesn-work"
+     ],
+     "shared_with": []
+    }
+   ],
+   "follow_ups": [],
+   "manager_messages": [],
+   "runs": 1,
+   "sessions": [
+    "1118feb2"
+   ],
+   "source": "transcript",
+   "usage": {
+    "input": 1809,
+    "output": 3241,
+    "cache_read": 264687,
+    "cache_write": 23557,
+    "models": {
+     "claude-opus-5-5": {
+      "input": 24,
+      "output": 2958,
+      "cache_read": 264687,
+      "cache_write_5m": 0,
+      "cache_write_1h": 23557,
+      "web_searches": 0
+     },
+     "claude-haiku-5-5": {
+      "input": 1785,
+      "output": 283,
+      "cache_read": 0,
+      "cache_write_5m": 0,
+      "cache_write_1h": 0,
+      "web_searches": 0
+     }
+    },
+    "unpriced": []
+   },
+   "shots": []
+  }
+ ],
+ "not_run": [
+  {
+   "ref": "T11 dca-money-weighted-return",
+   "state": "pending",
+   "title": "Money-weighted return (IRR) for DCA results"
+  },
+  {
+   "ref": "T16 history-late-start-markers",
+   "state": "pending",
+   "title": "Mark late starts on the history chart"
+  },
+  {
+   "ref": "T17 history-yearly-returns",
+   "state": "pending",
+   "title": "Year-by-year returns on the history page"
+  },
+  {
+   "ref": "T21 site-wide-price-status-banner",
+   "state": "pending",
+   "title": "Site-wide price-source status banner"
+  }
+ ],
+ "manager": {
+  "decisions": [
+   {
+    "at": "2026-10-27T15:20:20-04:00",
+    "tool": "annotate_task",
+    "task": "T1 new-investing-want-software",
+    "detail": "Added a note: Manager: the project is empty apart from .venv and an empty requirements.txt, so plan this before building it. Pick a free price source that needs no account or API key, and check it really works for both daily current prices and historical ranges. Plan the app's form (for example a lo",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:20:22-04:00",
+    "tool": "queue_assign",
+    "task": "T1 new-investing-want-software",
+    "detail": "Queued in Research: Paper investing app",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:23:21-04:00",
+    "tool": "escalate",
+    "task": "T1 new-investing-want-software",
+    "detail": "Passed to you on the Questions tab",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:24:20-04:00",
+    "tool": "propose_tasks",
+    "task": "T2 app-foundation",
+    "detail": "Filed Ready from the plan of T1 new-investing-want-software (691d1322)",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:24:20-04:00",
+    "tool": "propose_tasks",
+    "task": "T3 ui-harness-and-shots",
+    "detail": "Filed Ready from the plan of T1 new-investing-want-software (691d1322)",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:24:20-04:00",
+    "tool": "propose_tasks",
+    "task": "T4 yahoo-price-source",
+    "detail": "Filed Ready from the plan of T1 new-investing-want-software (691d1322)",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:24:20-04:00",
+    "tool": "propose_tasks",
+    "task": "T5 analytics-engine",
+    "detail": "Filed Ready from the plan of T1 new-investing-want-software (691d1322)",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:24:20-04:00",
+    "tool": "propose_tasks",
+    "task": "T6 portfolio-builder-watch",
+    "detail": "Filed Ready from the plan of T1 new-investing-want-software (691d1322)",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:24:20-04:00",
+    "tool": "propose_tasks",
+    "task": "T7 history-backtest-page",
+    "detail": "Filed Ready from the plan of T1 new-investing-want-software (691d1322)",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:24:20-04:00",
+    "tool": "propose_tasks",
+    "task": "T8 example-portfolios",
+    "detail": "Filed Ready from the plan of T1 new-investing-want-software (691d1322)",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:24:20-04:00",
+    "tool": "propose_tasks",
+    "task": "T9 learn-strategy-lab",
+    "detail": "Filed Ready from the plan of T1 new-investing-want-software (691d1322)",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:24:20-04:00",
+    "tool": "propose_tasks",
+    "task": "T10 home-dashboard-docs",
+    "detail": "Filed Ready from the plan of T1 new-investing-want-software (691d1322)",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:24:21-04:00",
+    "tool": "propose_tasks",
+    "task": "T1 new-investing-want-software",
+    "detail": "Split its plan into 9 Ready tasks",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:24:27-04:00",
+    "tool": "queue_assign",
+    "task": "T2 app-foundation",
+    "detail": "Queued in App foundation",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:30:54-04:00",
+    "tool": "annotate_task",
+    "task": "T4 yahoo-price-source",
+    "detail": "Added a note: Manager, from T2 app-foundation (9fa9251e): in investaround/app.py, implement `_make_yahoo(app)` to return CachingPriceSource(YahooPriceSource(...)) with the cache under app.config['DATA_DIR'], and set DEFAULT_PRICE_SOURCE = 'yahoo'. Nothing else in app.py needs to change. Note that T3",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:30:56-04:00",
+    "tool": "annotate_task",
+    "task": "T3 ui-harness-and-shots",
+    "detail": "Added a note: Manager, from T2 app-foundation (9fa9251e): build test apps with create_app({'DATA_DIR': tmp, 'PRICE_SOURCE': 'fake'}). For error-path tests, pass PRICE_SOURCE_OBJ=FakePriceSource(fail_symbols={...}). pytest is already configured (pyproject.toml sets pythonpath=['.']). Both installed C",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:31:08-04:00",
+    "tool": "queue_assign",
+    "task": "T4 yahoo-price-source",
+    "detail": "Queued in App foundation",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:31:11-04:00",
+    "tool": "queue_assign",
+    "task": "T3 ui-harness-and-shots",
+    "detail": "Queued in UI harness",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:31:11-04:00",
+    "tool": "queue_assign",
+    "task": "T5 analytics-engine",
+    "detail": "Queued in Analytics engine",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:34:18-04:00",
+    "tool": "queue_assign",
+    "task": "T8 example-portfolios",
+    "detail": "Queued in Example portfolios",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:37:14-04:00",
+    "tool": "annotate_task",
+    "task": "T7 history-backtest-page",
+    "detail": "Added a note: Manager, from T4 yahoo-price-source (ea97e03c): Yahoo's `close` is already split-adjusted, and `adjclose` only adds dividends. Use `adjclose` for total return. No split handling is needed.",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:37:24-04:00",
+    "tool": "queue_assign",
+    "task": "T6 portfolio-builder-watch",
+    "detail": "Queued in Portfolio builder",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:38:12-04:00",
+    "tool": "annotate_task",
+    "task": "T7 history-backtest-page",
+    "detail": "Added a note: Manager, from T5 analytics-engine (6cb78b44): use investaround.analytics: portfolio_value_series() and compare_to_benchmark(). Explain the ValueSeries' late_starts (holdings kept as cash until their first price) and no_data on the page. cagr and best/worst year are None for short range",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:38:14-04:00",
+    "tool": "annotate_task",
+    "task": "T9 learn-strategy-lab",
+    "detail": "Added a note: Manager, from T5 analytics-engine (6cb78b44): use investaround.analytics.strategies: buy_and_hold, rebalanced(period in REBALANCE_PERIODS), dollar_cost_average, and lump_sum_vs_dca, which returns lump, dca, difference and winner. Each StrategyResult has key, label, series and metrics. ",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:38:17-04:00",
+    "tool": "propose_tasks",
+    "task": "T12 interest-on-uninvested-cash",
+    "detail": "Proposed as a Draft",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:38:29-04:00",
+    "tool": "queue_assign",
+    "task": "T7 history-backtest-page",
+    "detail": "Queued in History page",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:38:30-04:00",
+    "tool": "queue_assign",
+    "task": "T9 learn-strategy-lab",
+    "detail": "Queued in Learn and strategy lab",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:39:46-04:00",
+    "tool": "annotate_task",
+    "task": "T10 home-dashboard-docs",
+    "detail": "Added a note: Manager, from T8 example-portfolios (5868efa4): as part of integration, change POST /examples/<id>/try (or the link in its \"Added …\" notice) to go to the new portfolio's own watch page from T6, not to /portfolios/.",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:39:50-04:00",
+    "tool": "propose_tasks",
+    "task": "T13 richer-example-fixtures",
+    "detail": "Proposed as a Draft",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:39:50-04:00",
+    "tool": "mark_ready",
+    "task": "T13 richer-example-fixtures",
+    "detail": "Made Ready as a follow-up of 'Paper investing app step 7: example portfolios gallery': Completes the accepted plan's example set (it called for 10 blue-chip stocks), which T8 could only partly build with the recorded fixtures.",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:40:02-04:00",
+    "tool": "queue_assign",
+    "task": "T13 richer-example-fixtures",
+    "detail": "Queued in Example portfolios",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:43:28-04:00",
+    "tool": "annotate_task",
+    "task": "T12 interest-on-uninvested-cash",
+    "detail": "Added a note: Manager: T7 history-backtest-page and T9 learn-strategy-lab are calling investaround.analytics right now. Add the cash rate as an optional keyword that defaults to 0%, so existing calls and results stay unchanged. Don't edit web/, templates/ or static/; the pages can offer the option l",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:43:29-04:00",
+    "tool": "queue_assign",
+    "task": "T12 interest-on-uninvested-cash",
+    "detail": "Queued in Analytics engine",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:44:20-04:00",
+    "tool": "annotate_task",
+    "task": "T10 home-dashboard-docs",
+    "detail": "Added a note: Manager, from T9 learn-strategy-lab (341d042b): link /learn/ (lessons) and /learn/lab (strategy lab) from the home dashboard's \"start here\" path.",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:44:23-04:00",
+    "tool": "propose_tasks",
+    "task": "T14 examples-in-strategy-lab",
+    "detail": "Proposed as a Draft",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:44:23-04:00",
+    "tool": "mark_ready",
+    "task": "T14 examples-in-strategy-lab",
+    "detail": "Made Ready as a follow-up of 'Paper investing app step 8: Learn and Strategies lab': Joins two features the plan built so a new investor can run the strategies on the examples the plan asked for.",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:44:34-04:00",
+    "tool": "queue_assign",
+    "task": "T14 examples-in-strategy-lab",
+    "detail": "Queued in Learn and strategy lab",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:45:08-04:00",
+    "tool": "annotate_task",
+    "task": "T10 home-dashboard-docs",
+    "detail": "Added a note: Manager, from T6 portfolio-builder-watch (b0a3ff12): for each portfolio's value, today's change and gain, call investaround.web.portfolios.value_portfolio(p, prices) instead of computing them again.",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:45:10-04:00",
+    "tool": "propose_tasks",
+    "task": "T15 store-purchase-prices",
+    "detail": "Proposed as a Draft",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:45:17-04:00",
+    "tool": "propose_tasks",
+    "task": "T18 regression-tests-paper-app",
+    "detail": "Proposed as a Draft",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:46:40-04:00",
+    "tool": "propose_tasks",
+    "task": "T19 cash-rate-option-in-pages",
+    "detail": "Proposed as a Draft",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:46:40-04:00",
+    "tool": "mark_ready",
+    "task": "T19 cash-rate-option-in-pages",
+    "detail": "Made Ready as a follow-up of 'Interest on uninvested cash': The user readied T12; without these follow-ups its cash rate can't be chosen anywhere in the app.",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:46:40-04:00",
+    "tool": "propose_tasks",
+    "task": "T20 irx-tbill-fixture",
+    "detail": "Proposed as a Draft",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:46:40-04:00",
+    "tool": "mark_ready",
+    "task": "T20 irx-tbill-fixture",
+    "detail": "Made Ready as a follow-up of 'Interest on uninvested cash': The user readied T12; without these follow-ups its cash rate can't be chosen anywhere in the app.",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:46:41-04:00",
+    "tool": "queue_assign",
+    "task": "T10 home-dashboard-docs",
+    "detail": "Queued in Home dashboard and docs",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:46:58-04:00",
+    "tool": "queue_assign",
+    "task": "T20 irx-tbill-fixture",
+    "detail": "Queued in Analytics engine",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:52:55-04:00",
+    "tool": "annotate_task",
+    "task": "T19 cash-rate-option-in-pages",
+    "detail": "Added a note: Manager, from T10 home-dashboard-docs (f91681c3): the strategy lab's \"what this shows\" text still says waiting money \"earns nothing (0%)\". Once the cash option exists, make that text match the chosen rate. The T-bill choice can use the ^IRX fixture that T20 irx-tbill-fixture recorded (",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:52:59-04:00",
+    "tool": "revise_task",
+    "task": "T18 regression-tests-paper-app",
+    "detail": "Rewrote it: Covers the follow-ups that landed since, and T10's request for a full pass.",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:53:09-04:00",
+    "tool": "queue_assign",
+    "task": "T19 cash-rate-option-in-pages",
+    "detail": "Queued in Analytics and cash interest",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:58:05-04:00",
+    "tool": "annotate_task",
+    "task": "T15 store-purchase-prices",
+    "detail": "Added a note: Manager: T19 cash-rate-option-in-pages is changing web/history.py, web/learn.py and their screenshots at the same time, so stay out of those files. Portfolios saved without start prices must still load, so make the new fields optional in storage.",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T15:58:05-04:00",
+    "tool": "queue_assign",
+    "task": "T15 store-purchase-prices",
+    "detail": "Queued in Portfolio builder",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T16:01:16-04:00",
+    "tool": "mark_ready",
+    "task": "T18 regression-tests-paper-app",
+    "detail": "Made Ready as a follow-up of 'Paper investing app step 1: foundation, contracts and app...': Full unit and UI test pass that T6, T7, T10 and T15 asked for, now that the plan steps and their follow-ups are in.",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T16:01:32-04:00",
+    "tool": "queue_assign",
+    "task": "T18 regression-tests-paper-app",
+    "detail": "Queued in Research: Regression tests",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T16:11:11-04:00",
+    "tool": "answer_on_review",
+    "task": "T22 run-set-main-entry",
+    "detail": "Answered and moved to Review: The main entry point is already set to investaround/__main__.py, so Wing's Debug or Run (with no other file chosen) starts the app at http://127.0.0.1:8765/ and opens it in your browser. From a terminal, run `.venv/bin/python -m investaround`. The README's Run section l",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T16:12:40-04:00",
+    "tool": "annotate_task",
+    "task": "T23 running-wing-doesn-work",
+    "detail": "Added a note: Manager: Wing runs investaround/__main__.py as a plain file, so its relative import fails. Add a small top-level launcher, e.g. run_investaround.py at the project root, that calls investaround.__main__.main(), and create it with create_tracked_file. Then set Wing's main_entry_point to ",
+    "reverted_at": null
+   },
+   {
+    "at": "2026-10-27T16:12:43-04:00",
+    "tool": "queue_assign",
+    "task": "T23 running-wing-doesn-work",
+    "detail": "Queued in Wing run launcher",
+    "reverted_at": null
+   }
+  ],
+  "questions": [],
+  "usage": {
+   "input": 526,
+   "output": 43879,
+   "cache_read": 24885404,
+   "cache_write": 163398,
+   "models": {
+    "claude-opus-5-5": {
+     "input": 526,
+     "output": 43879,
+     "cache_read": 24885404,
+     "cache_write_5m": 0,
+     "cache_write_1h": 163398,
+     "web_searches": 0
+    }
+   },
+   "unpriced": []
+  },
+  "corrections": [
+   {
+    "at": "2026-10-27T15:37:13-04:00",
+    "task": "T5 analytics-engine",
+    "text": "From T4 yahoo-price-source, verified on AAPL's 2020 4:1 split: Yahoo's `close` is already split-adjusted, and `adjclose` only adds dividends on top. So use `adjclose` for total return, and the analytics need no split handling of their own."
+   },
+   {
+    "at": "2026-10-27T15:39:44-04:00",
+    "task": "T7 history-backtest-page",
+    "text": "From T8 example-portfolios (just finished): the Examples page links \"See how it would have done\" to /history/?example=<id>. Have the history page read that parameter and preload the example's holdings with investaround.web.examples.get_example(id). That function raises KeyError for an unknown id; show a friendly message in that case."
+   }
+  ]
+ },
+ "other_commits": [
+  {
+   "revision": "2a570968be33",
+   "hash": "2a570968be338ef532bec14603ce25ab8e2e0392",
+   "date": "2026-10-27T15:19:46-04:00",
+   "subject": "Initial commit",
+   "url": "https://github.com/wingware-dev/investaround/commit/2a570968be338ef532bec14603ce25ab8e2e0392"
+  }
+ ],
+ "totals": {
+  "tasks": 19,
+  "questions": 0,
+  "answered_by_user": 0,
+  "answered_by_manager": 0,
+  "unanswered": 0,
+  "escalated": 1,
+  "judgement_calls": 75,
+  "findings": 0,
+  "commits": 17,
+  "manager_questions": 0,
+  "manager_decisions": 56,
+  "wall_time_secs": 4483.0,
+  "span_secs": 3242.0,
+  "workers": {
+   "input": 35153,
+   "output": 421633,
+   "cache_read": 39276347,
+   "cache_write": 1074677,
+   "models": {
+    "claude-opus-5-5": {
+     "input": 950,
+     "output": 419586,
+     "cache_read": 39276347,
+     "cache_write_5m": 0,
+     "cache_write_1h": 1074677,
+     "web_searches": 0
+    },
+    "claude-haiku-5-5": {
+     "input": 34203,
+     "output": 2047,
+     "cache_read": 0,
+     "cache_write_5m": 0,
+     "cache_write_1h": 0,
+     "web_searches": 1
+    }
+   },
+   "unpriced": []
+  },
+  "manager": {
+   "input": 526,
+   "output": 43879,
+   "cache_read": 24885404,
+   "cache_write": 163398,
+   "models": {
+    "claude-opus-5-5": {
+     "input": 526,
+     "output": 43879,
+     "cache_read": 24885404,
+     "cache_write_5m": 0,
+     "cache_write_1h": 163398,
+     "web_searches": 0
+    }
+   },
+   "unpriced": []
+  },
+  "total": {
+   "input": 35679,
+   "output": 465512,
+   "cache_read": 64161751,
+   "cache_write": 1238075,
+   "models": {
+    "claude-opus-5-5": {
+     "input": 1476,
+     "output": 463465,
+     "cache_read": 64161751,
+     "cache_write_5m": 0,
+     "cache_write_1h": 1238075,
+     "web_searches": 0
+    },
+    "claude-haiku-5-5": {
+     "input": 34203,
+     "output": 2047,
+     "cache_read": 0,
+     "cache_write_5m": 0,
+     "cache_write_1h": 0,
+     "web_searches": 1
+    }
+   },
+   "unpriced": []
+  }
+ },
+ "what_went_wrong": [
+  {
+   "at": "2026-10-27T15:37:13-04:00",
+   "task": "T5 analytics-engine",
+   "kind": "correction",
+   "text": "The Manager redirected the worker: From T4 yahoo-price-source, verified on AAPL's 2020 4:1 split: Yahoo's `close` is already split-adjusted, and `adjclose` only adds dividends on top. So use `adjclose` for total return, and the analytics need no split handling of their own."
+  },
+  {
+   "at": "2026-10-27T15:39:44-04:00",
+   "task": "T7 history-backtest-page",
+   "kind": "correction",
+   "text": "The Manager redirected the worker: From T8 example-portfolios (just finished): the Examples page links \"See how it would have done\" to /history/?example=<id>. Have the history page read that parameter and preload the example's holdings with investaround.web.examples.get_example(id). That function raises KeyError for an unknown id; show a friendly message in that case."
+  }
+ ],
+ "notes": []
+}
