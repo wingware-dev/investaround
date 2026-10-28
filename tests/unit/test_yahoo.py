@@ -1,4 +1,4 @@
-"""YahooPriceSource against recorded responses (tests/fixtures/yahoo), never live."""
+"""YahooPriceSource against Yahoo-shaped replies (tests/fixtures/yahoo), never live."""
 
 import copy
 import datetime as dt

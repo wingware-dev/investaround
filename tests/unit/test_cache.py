@@ -275,7 +275,7 @@ class TestSearch:
 
 
 def test_with_yahoo_source(tmp_path, clock):
-    """End to end over a recorded Yahoo reply: the second read makes no request."""
+    """End to end over a Yahoo-shaped reply: the second read makes no request."""
     record = json.loads((Path(__file__).resolve().parents[1] / "fixtures" / "yahoo" / "history_SPY_2020.json").read_text())
     requests = []
 

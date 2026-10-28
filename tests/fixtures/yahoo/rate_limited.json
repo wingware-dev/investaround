@@ -1,0 +1,15 @@
+{
+  "_note": "Written by hand (Yahoo won't rate-limit on demand); matches the reply seen when it does",
+  "request": {
+    "path": "/v8/finance/chart/SPY",
+    "params": {
+      "range": "5d",
+      "interval": "1d"
+    }
+  },
+  "status": 429,
+  "headers": {
+    "content-type": "text/html; charset=utf-8"
+  },
+  "body": "Too Many Requests\r\n"
+}

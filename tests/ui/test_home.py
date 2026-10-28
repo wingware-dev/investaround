@@ -25,7 +25,7 @@ def test_first_visit_shows_start_here_path(page, live_app):
     path = page.locator("aside.start-here")
     links = path.get_by_role("link")
     assert [(links.nth(i).inner_text(), links.nth(i).get_attribute("href")) for i in range(links.count())] == START_HERE
-    assert "Recorded sample prices" in page.locator("#source-status").inner_text()
+    assert "Made-up sample prices" in page.locator("#source-status").inner_text()
     assert page.locator("#price-error").count() == 0
 
     page.locator("#no-portfolios").get_by_role("link", name="Start from an example").click()

@@ -1,0 +1,267 @@
+{
+  "generated": "2026-10-27",
+  "as_of": "2026-10-27",
+  "source": "Made-up sample prices from tools/generate_fixtures.py, not real market data",
+  "quotes": {
+    "AAPL": {
+      "symbol": "AAPL",
+      "price": 340.0,
+      "previous_close": 338.073422,
+      "currency": "USD",
+      "name": "Apple Inc.",
+      "instrument_type": "EQUITY",
+      "exchange": "NasdaqGS",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "price": 250.0,
+      "previous_close": 253.31262,
+      "currency": "USD",
+      "name": "Amazon.com, Inc.",
+      "instrument_type": "EQUITY",
+      "exchange": "NasdaqGS",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "BND": {
+      "symbol": "BND",
+      "price": 72.0,
+      "previous_close": 71.643095,
+      "currency": "USD",
+      "name": "Vanguard Total Bond Market Index Fund ETF Shares",
+      "instrument_type": "ETF",
+      "exchange": "NasdaqGM",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "DBC": {
+      "symbol": "DBC",
+      "price": 24.0,
+      "previous_close": 23.937309,
+      "currency": "USD",
+      "name": "Invesco DB Commodity Index Tracking Fund",
+      "instrument_type": "ETF",
+      "exchange": "NYSEArca",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "GLD": {
+      "symbol": "GLD",
+      "price": 370.0,
+      "previous_close": 370.500557,
+      "currency": "USD",
+      "name": "SPDR Gold Shares",
+      "instrument_type": "ETF",
+      "exchange": "NYSEArca",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "HD": {
+      "symbol": "HD",
+      "price": 390.0,
+      "previous_close": 384.294424,
+      "currency": "USD",
+      "name": "The Home Depot, Inc.",
+      "instrument_type": "EQUITY",
+      "exchange": "NYSE",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "IEF": {
+      "symbol": "IEF",
+      "price": 96.0,
+      "previous_close": 95.579098,
+      "currency": "USD",
+      "name": "iShares 7-10 Year Treasury Bond ETF",
+      "instrument_type": "ETF",
+      "exchange": "NasdaqGM",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "JNJ": {
+      "symbol": "JNJ",
+      "price": 165.0,
+      "previous_close": 163.054723,
+      "currency": "USD",
+      "name": "Johnson & Johnson",
+      "instrument_type": "EQUITY",
+      "exchange": "NYSE",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "JPM": {
+      "symbol": "JPM",
+      "price": 300.0,
+      "previous_close": 291.283692,
+      "currency": "USD",
+      "name": "JPMorgan Chase & Co.",
+      "instrument_type": "EQUITY",
+      "exchange": "NYSE",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "KO": {
+      "symbol": "KO",
+      "price": 70.0,
+      "previous_close": 68.890374,
+      "currency": "USD",
+      "name": "The Coca-Cola Company",
+      "instrument_type": "EQUITY",
+      "exchange": "NYSE",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "price": 520.0,
+      "previous_close": 511.0355,
+      "currency": "USD",
+      "name": "Microsoft Corporation",
+      "instrument_type": "EQUITY",
+      "exchange": "NasdaqGS",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "price": 190.0,
+      "previous_close": 186.581224,
+      "currency": "USD",
+      "name": "NVIDIA Corporation",
+      "instrument_type": "EQUITY",
+      "exchange": "NasdaqGS",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "PG": {
+      "symbol": "PG",
+      "price": 155.0,
+      "previous_close": 151.963916,
+      "currency": "USD",
+      "name": "The Procter & Gamble Company",
+      "instrument_type": "EQUITY",
+      "exchange": "NYSE",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "price": 610.0,
+      "previous_close": 604.834794,
+      "currency": "USD",
+      "name": "Invesco QQQ Trust",
+      "instrument_type": "ETF",
+      "exchange": "NasdaqGM",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "SCHD": {
+      "symbol": "SCHD",
+      "price": 27.0,
+      "previous_close": 26.777121,
+      "currency": "USD",
+      "name": "Schwab U.S. Dividend Equity ETF",
+      "instrument_type": "ETF",
+      "exchange": "NYSEArca",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "SPY": {
+      "symbol": "SPY",
+      "price": 680.0,
+      "previous_close": 674.432439,
+      "currency": "USD",
+      "name": "State Street SPDR S&P 500 ETF Trust",
+      "instrument_type": "ETF",
+      "exchange": "NYSEArca",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "TLT": {
+      "symbol": "TLT",
+      "price": 90.0,
+      "previous_close": 88.895824,
+      "currency": "USD",
+      "name": "iShares 20+ Year Treasury Bond ETF",
+      "instrument_type": "ETF",
+      "exchange": "NasdaqGM",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "VNQ": {
+      "symbol": "VNQ",
+      "price": 90.0,
+      "previous_close": 89.03565,
+      "currency": "USD",
+      "name": "Vanguard Real Estate Index Fund ETF Shares",
+      "instrument_type": "ETF",
+      "exchange": "NYSEArca",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "VOO": {
+      "symbol": "VOO",
+      "price": 625.0,
+      "previous_close": 619.711386,
+      "currency": "USD",
+      "name": "Vanguard S&P 500 ETF",
+      "instrument_type": "ETF",
+      "exchange": "NYSEArca",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "VTI": {
+      "symbol": "VTI",
+      "price": 330.0,
+      "previous_close": 326.984632,
+      "currency": "USD",
+      "name": "Vanguard Morningstar Total Stock Market ETF",
+      "instrument_type": "ETF",
+      "exchange": "NYSEArca",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "VTSAX": {
+      "symbol": "VTSAX",
+      "price": 180.0,
+      "previous_close": 180.443925,
+      "currency": "USD",
+      "name": "Vanguard MStar Total Stk Mkt Idx Admiral",
+      "instrument_type": "MUTUALFUND",
+      "exchange": "Nasdaq",
+      "as_of": "2026-10-26T19:30:00+00:00"
+    },
+    "VXUS": {
+      "symbol": "VXUS",
+      "price": 72.0,
+      "previous_close": 71.630598,
+      "currency": "USD",
+      "name": "Vanguard Total International Stock Index Fund ETF Shares",
+      "instrument_type": "ETF",
+      "exchange": "NasdaqGS",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "VYM": {
+      "symbol": "VYM",
+      "price": 140.0,
+      "previous_close": 139.324029,
+      "currency": "USD",
+      "name": "Vanguard High Dividend Yield Index Fund ETF Shares",
+      "instrument_type": "ETF",
+      "exchange": "NYSEArca",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "WMT": {
+      "symbol": "WMT",
+      "price": 100.0,
+      "previous_close": 98.842124,
+      "currency": "USD",
+      "name": "Walmart Inc.",
+      "instrument_type": "EQUITY",
+      "exchange": "NasdaqGS",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "XOM": {
+      "symbol": "XOM",
+      "price": 115.0,
+      "previous_close": 116.813188,
+      "currency": "USD",
+      "name": "ExxonMobil Holdings Corporation",
+      "instrument_type": "EQUITY",
+      "exchange": "NYSE",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    },
+    "^IRX": {
+      "symbol": "^IRX",
+      "price": 3.9,
+      "previous_close": 3.890625,
+      "currency": "USD",
+      "name": "13 WEEK TREASURY BILL",
+      "instrument_type": "INDEX",
+      "exchange": "Cboe Indices",
+      "as_of": "2026-10-27T19:30:00+00:00"
+    }
+  }
+}

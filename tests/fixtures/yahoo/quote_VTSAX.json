@@ -1,0 +1,139 @@
+{
+  "_note": "Shaped like a Yahoo reply, with made-up prices and volumes (not market data)",
+  "request": {
+    "path": "/v8/finance/chart/VTSAX",
+    "params": {
+      "range": "5d",
+      "interval": "1d"
+    }
+  },
+  "status": 200,
+  "headers": {
+    "content-type": "application/json;charset=utf-8"
+  },
+  "body": {
+    "chart": {
+      "result": [
+        {
+          "meta": {
+            "currency": "USD",
+            "symbol": "VTSAX",
+            "exchangeName": "NAS",
+            "fullExchangeName": "Nasdaq",
+            "instrumentType": "MUTUALFUND",
+            "firstTradeDate": 974125800,
+            "regularMarketTime": 1793103026,
+            "hasPrePostMarketData": false,
+            "gmtoffset": -14400,
+            "timezone": "EDT",
+            "exchangeTimezoneName": "America/New_York",
+            "regularMarketPrice": 146.41,
+            "regularMarketChangePercent": -0.382,
+            "fulldayPrice": 146.41,
+            "fulldayChange": 0.98,
+            "fulldayChangePercent": 1.075,
+            "fiftyTwoWeekHigh": 151.49,
+            "fiftyTwoWeekLow": 123.22,
+            "longName": "Vanguard MStar Total Stk Mkt Idx Admiral",
+            "shortName": "Vanguard Total Stock Market Ind",
+            "chartPreviousClose": 144.74,
+            "priceHint": 2,
+            "currentTradingPeriod": {
+              "pre": {
+                "timezone": "EDT",
+                "end": 1793107800,
+                "start": 1793088000,
+                "gmtoffset": -14400
+              },
+              "regular": {
+                "timezone": "EDT",
+                "end": 1793131200,
+                "start": 1793107800,
+                "gmtoffset": -14400
+              },
+              "post": {
+                "timezone": "EDT",
+                "end": 1793145600,
+                "start": 1793131200,
+                "gmtoffset": -14400
+              }
+            },
+            "dataGranularity": "1d",
+            "range": "5d",
+            "validRanges": [
+              "1mo",
+              "3mo",
+              "6mo",
+              "ytd",
+              "1y",
+              "2y",
+              "5y",
+              "10y",
+              "max"
+            ]
+          },
+          "timestamp": [
+            1792589400,
+            1792675800,
+            1792762200,
+            1793021400,
+            1793107800
+          ],
+          "indicators": {
+            "quote": [
+              {
+                "open": [
+                  147.65,
+                  147.8,
+                  147.1,
+                  146.41,
+                  null
+                ],
+                "volume": [
+                  27180889,
+                  43889584,
+                  88907610,
+                  16042074,
+                  null
+                ],
+                "high": [
+                  147.65,
+                  147.8,
+                  147.1,
+                  146.41,
+                  null
+                ],
+                "low": [
+                  147.65,
+                  147.8,
+                  147.1,
+                  146.41,
+                  null
+                ],
+                "close": [
+                  147.65,
+                  147.8,
+                  147.1,
+                  146.41,
+                  null
+                ]
+              }
+            ],
+            "adjclose": [
+              {
+                "adjclose": [
+                  147.65,
+                  147.8,
+                  147.1,
+                  146.41,
+                  null
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "error": null
+    }
+  }
+}

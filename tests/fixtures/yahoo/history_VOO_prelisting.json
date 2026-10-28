@@ -1,0 +1,24 @@
+{
+  "request": {
+    "path": "/v8/finance/chart/VOO",
+    "params": {
+      "period1": 1199145600,
+      "period2": 1230681600,
+      "interval": "1d",
+      "events": "div|split"
+    }
+  },
+  "status": 400,
+  "headers": {
+    "content-type": "application/json;charset=utf-8"
+  },
+  "body": {
+    "chart": {
+      "result": null,
+      "error": {
+        "code": "Bad Request",
+        "description": "Data doesn't exist for startDate = 1199145600, endDate = 1230681600"
+      }
+    }
+  }
+}

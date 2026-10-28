@@ -1,0 +1,121 @@
+{
+  "request": {
+    "path": "/v1/finance/search",
+    "params": {
+      "q": "vanguard total",
+      "quotesCount": 10,
+      "newsCount": 0
+    }
+  },
+  "status": 200,
+  "headers": {
+    "content-type": "application/json;charset=utf-8"
+  },
+  "body": {
+    "explains": [],
+    "count": 7,
+    "quotes": [
+      {
+        "exchange": "NGM",
+        "shortname": "Vanguard Total International St",
+        "quoteType": "ETF",
+        "symbol": "VXUS",
+        "index": "quotes",
+        "score": 35143.0,
+        "typeDisp": "ETF",
+        "longname": "Vanguard Total International Stock Index Fund ETF Shares",
+        "exchDisp": "NASDAQ",
+        "isYahooFinance": true
+      },
+      {
+        "exchange": "PCX",
+        "shortname": "Vanguard Total World Stock Inde",
+        "quoteType": "ETF",
+        "symbol": "VT",
+        "index": "quotes",
+        "score": 29062.0,
+        "typeDisp": "ETF",
+        "longname": "Vanguard Total World Stock Index Fund ETF Shares",
+        "exchDisp": "NYSEArca",
+        "isYahooFinance": true
+      },
+      {
+        "exchange": "NGM",
+        "shortname": "Vanguard Total Bond Market ETF",
+        "quoteType": "ETF",
+        "symbol": "BND",
+        "index": "quotes",
+        "score": 27040.0,
+        "typeDisp": "ETF",
+        "longname": "Vanguard Total Bond Market Index Fund ETF Shares",
+        "exchDisp": "NASDAQ",
+        "isYahooFinance": true
+      },
+      {
+        "exchange": "NAS",
+        "shortname": "Vanguard Total Stock Market Ind",
+        "quoteType": "MUTUALFUND",
+        "symbol": "VTSAX",
+        "index": "quotes",
+        "score": 23602.0,
+        "typeDisp": "Fund",
+        "longname": "Vanguard MStar Total Stk Mkt Idx Admiral",
+        "exchDisp": "NASDAQ",
+        "isYahooFinance": true
+      },
+      {
+        "exchange": "NAS",
+        "shortname": "Vanguard Total International St",
+        "quoteType": "MUTUALFUND",
+        "symbol": "VTIAX",
+        "index": "quotes",
+        "score": 20981.0,
+        "typeDisp": "Fund",
+        "longname": "Vanguard Total Intl Stock Index Admiral",
+        "exchDisp": "NASDAQ",
+        "isYahooFinance": true
+      },
+      {
+        "exchange": "NGM",
+        "shortname": "Vanguard Total International Bo",
+        "quoteType": "ETF",
+        "symbol": "BNDX",
+        "index": "quotes",
+        "score": 20899.0,
+        "typeDisp": "ETF",
+        "longname": "Vanguard Total International Bond Index Fund ETF Shares",
+        "exchDisp": "NASDAQ",
+        "isYahooFinance": true
+      },
+      {
+        "exchange": "NAS",
+        "shortname": "Vanguard Total Bond Market Inde",
+        "quoteType": "MUTUALFUND",
+        "symbol": "VBTLX",
+        "index": "quotes",
+        "score": 20840.0,
+        "typeDisp": "Fund",
+        "longname": "Vanguard Total Bond Market Index Adm",
+        "exchDisp": "NASDAQ",
+        "isYahooFinance": true
+      }
+    ],
+    "news": [],
+    "nav": [],
+    "lists": [],
+    "researchReports": [],
+    "screenerFieldResults": [],
+    "totalTime": 20,
+    "timeTakenForQuotes": 413,
+    "timeTakenForNews": 0,
+    "timeTakenForAlgowatchlist": 400,
+    "timeTakenForPredefinedScreener": 400,
+    "timeTakenForCrunchbase": 0,
+    "timeTakenForNav": 400,
+    "timeTakenForResearchReports": 0,
+    "timeTakenForQuestions": 0,
+    "timeTakenForScreenerField": 0,
+    "timeTakenForCulturalAssets": 0,
+    "timeTakenForSearchLists": 0
+  }
+}

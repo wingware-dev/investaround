@@ -1,0 +1,22 @@
+{
+  "request": {
+    "path": "/v8/finance/chart/NOSUCHSYMBOLX",
+    "params": {
+      "range": "5d",
+      "interval": "1d"
+    }
+  },
+  "status": 404,
+  "headers": {
+    "content-type": "application/json;charset=utf-8"
+  },
+  "body": {
+    "chart": {
+      "result": null,
+      "error": {
+        "code": "Not Found",
+        "description": "No data found, symbol may be delisted"
+      }
+    }
+  }
+}

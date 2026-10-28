@@ -1,7 +1,7 @@
-"""FakePriceSource: real recorded prices from tests/fixtures, no network.
+"""FakePriceSource: made-up sample prices from tests/fixtures, no network.
 
 Used by every test and by ``INVESTAROUND_PRICE_SOURCE=fake``.  "Today" is
-frozen at the date the fixtures were recorded, so results never drift.
+frozen at the date the fixtures end, so results never drift.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ class FakePriceSource:
         self.fixtures_dir = Path(fixtures_dir)
         quotes_path = self.fixtures_dir / "quotes.json"
         if not quotes_path.exists():
-            raise FileNotFoundError(f"No price fixtures at {self.fixtures_dir}; run tools/record_fixtures.py")
+            raise FileNotFoundError(f"No price fixtures at {self.fixtures_dir}; run tools/generate_fixtures.py")
         payload = json.loads(quotes_path.read_text(encoding="utf-8"))
         self.today = dt.date.fromisoformat(payload["as_of"])
         self._quote_data: dict[str, dict] = payload["quotes"]

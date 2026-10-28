@@ -1,0 +1,144 @@
+{
+  "_note": "Shaped like a Yahoo reply, with made-up prices and volumes (not market data)",
+  "request": {
+    "path": "/v8/finance/chart/SPY",
+    "params": {
+      "range": "5d",
+      "interval": "1d"
+    }
+  },
+  "status": 200,
+  "headers": {
+    "content-type": "application/json;charset=utf-8"
+  },
+  "body": {
+    "chart": {
+      "result": [
+        {
+          "meta": {
+            "currency": "USD",
+            "symbol": "SPY",
+            "exchangeName": "PCX",
+            "fullExchangeName": "NYSEArca",
+            "instrumentType": "ETF",
+            "firstTradeDate": 728317800,
+            "regularMarketTime": 1793129511,
+            "hasPrePostMarketData": true,
+            "gmtoffset": -14400,
+            "timezone": "EDT",
+            "exchangeTimezoneName": "America/New_York",
+            "regularMarketPrice": 624.76,
+            "regularMarketChangePercent": -1.397,
+            "fulldayPrice": 624.76,
+            "fulldayChange": 4.07,
+            "fulldayChangePercent": -1.098,
+            "fiftyTwoWeekHigh": 617.6,
+            "fiftyTwoWeekLow": 505.69,
+            "regularMarketDayHigh": 609.92,
+            "regularMarketDayLow": 604.01,
+            "regularMarketVolume": 6336618,
+            "longName": "State Street SPDR S&P 500 ETF Trust",
+            "shortName": "State Street SPDR S&P 500 ETF T",
+            "chartPreviousClose": 626.12,
+            "priceHint": 2,
+            "currentTradingPeriod": {
+              "pre": {
+                "timezone": "EDT",
+                "start": 1793088000,
+                "end": 1793107800,
+                "gmtoffset": -14400
+              },
+              "regular": {
+                "timezone": "EDT",
+                "start": 1793107800,
+                "end": 1793131200,
+                "gmtoffset": -14400
+              },
+              "post": {
+                "timezone": "EDT",
+                "start": 1793131200,
+                "end": 1793145600,
+                "gmtoffset": -14400
+              }
+            },
+            "dataGranularity": "1d",
+            "range": "5d",
+            "validRanges": [
+              "1d",
+              "5d",
+              "1mo",
+              "3mo",
+              "6mo",
+              "1y",
+              "2y",
+              "5y",
+              "10y",
+              "ytd",
+              "max"
+            ]
+          },
+          "timestamp": [
+            1792589400,
+            1792675800,
+            1792762200,
+            1793021400,
+            1793107800
+          ],
+          "indicators": {
+            "quote": [
+              {
+                "open": [
+                  623.63,
+                  623.98,
+                  600.9,
+                  626.49,
+                  607.65
+                ],
+                "close": [
+                  601.85,
+                  617.63,
+                  592.4,
+                  608.27,
+                  624.76
+                ],
+                "low": [
+                  602.97,
+                  602.04,
+                  618.76,
+                  609.46,
+                  604.01
+                ],
+                "volume": [
+                  63838826,
+                  66134252,
+                  47330100,
+                  41425979,
+                  39737026
+                ],
+                "high": [
+                  609.0,
+                  618.16,
+                  598.81,
+                  626.37,
+                  609.92
+                ]
+              }
+            ],
+            "adjclose": [
+              {
+                "adjclose": [
+                  601.85,
+                  617.63,
+                  592.4,
+                  608.27,
+                  624.76
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "error": null
+    }
+  }
+}

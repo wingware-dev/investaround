@@ -59,7 +59,7 @@ file).  Options:
 | Option | What it does |
 | --- | --- |
 | `--port 9000` | use another port |
-| `--source fake` | use recorded sample prices instead of live ones (works offline) |
+| `--source fake` | use made-up sample prices instead of live ones (works offline) |
 | `--data-dir PATH` | keep portfolios and the price cache somewhere else |
 | `--no-browser` | don't open a browser window |
 
@@ -83,8 +83,10 @@ endpoints**.  These are free and need no account, but they are
 Past prices use adjusted closes, so dividends count as reinvested and
 splits are accounted for.
 
-`--source fake` uses real prices that were recorded on Oct 27, 2026 and
-are kept in `tests/fixtures/prices/`.  "Today" stays fixed at that date.
+`--source fake` uses made-up sample prices, kept in
+`tests/fixtures/prices/`, which behave like a real market (the 2008,
+2020 and 2022 crashes included) but are no real security's prices.
+"Today" stays fixed at Oct 27, 2026.
 The tests and screenshots use this source, so they never touch the
 network.
 
@@ -107,5 +109,5 @@ wherever `--data-dir` points:
 .venv/bin/python tools/shots.py --list       # list the screenshots
 ```
 
-`tools/record_fixtures.py` re-records the sample prices from Yahoo.  It
-runs live and is only for developers; the tests never run it.
+`tools/generate_fixtures.py` writes the sample prices; the same seed
+always writes the same files.

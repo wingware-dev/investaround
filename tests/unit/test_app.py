@@ -21,7 +21,7 @@ def test_every_page_renders_with_nav(app, url):
         assert f'href="{page}"' in html
     assert html.count('aria-current="page"') == 1
     assert "chart.umd.min.js" in html
-    assert "recorded sample data" in html
+    assert "made-up sample data" in html
 
 
 def test_static_assets_served(app):

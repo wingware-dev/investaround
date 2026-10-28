@@ -74,7 +74,7 @@ def test_source_status_fake_and_errors(prices):
     ok = value_portfolio(Portfolio("A", [Holding("SPY", weight=100)]), prices)
     st = source_status(prices, [ok])
     assert st.name == "fake"
-    assert "Recorded sample prices" in st.description
+    assert "Made-up sample prices" in st.description
     assert st.errors == []
     assert st.as_of == ok.prices_as_of
 

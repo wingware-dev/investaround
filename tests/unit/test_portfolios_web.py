@@ -28,6 +28,15 @@ def client(app):
     return app.test_client()
 
 
+# Prices in the sample data (tests/fixtures/prices): today's quotes, and
+# SPY's close on 2026-09-30
+_SAMPLE = FakePriceSource()
+SPY_PRICE = _SAMPLE.quote("SPY").price
+SPY_PREVIOUS = _SAMPLE.quote("SPY").previous_close
+BND_PRICE = _SAMPLE.quote("BND").price
+SPY_SEP30 = _SAMPLE.history("SPY", dt.date(2026, 9, 30), dt.date(2026, 9, 30)).bars[0].close
+
+
 def _adj(prices, sym, day):
     return next(b for b in prices.history(sym, day, day).bars).adjclose
 
@@ -54,10 +63,10 @@ def test_value_by_weight(prices):
     pv = value_portfolio(p, prices)
     spy, bnd = pv.rows
     assert spy.cost == pytest.approx(6000)
-    assert spy.value == pytest.approx(6000 * 680.0 / _adj(prices, "SPY", dt.date(2026, 9, 30)))
-    assert bnd.value == pytest.approx(4000 * 72.0 / _adj(prices, "BND", dt.date(2026, 9, 30)))
+    assert spy.value == pytest.approx(6000 * SPY_PRICE / _adj(prices, "SPY", dt.date(2026, 9, 30)))
+    assert bnd.value == pytest.approx(4000 * BND_PRICE / _adj(prices, "BND", dt.date(2026, 9, 30)))
     assert spy.gain == pytest.approx(spy.value - 6000)
-    assert spy.day_change == pytest.approx(spy.value * (1 - 674.432439 / 680.0))
+    assert spy.day_change == pytest.approx(spy.value * (1 - SPY_PREVIOUS / SPY_PRICE))
     assert pv.value == pytest.approx(spy.value + bnd.value)
     assert pv.gain_pct == pytest.approx((pv.value / 10000 - 1) * 100)
     assert pv.day_change_pct == pytest.approx(pv.day_change / (pv.value - pv.day_change) * 100)
@@ -243,7 +252,7 @@ def test_record_start_prices(prices):
     p = Portfolio("Mix", [Holding("SPY", weight=60), Holding("BND", weight=40)], created=dt.date(2026, 10, 1))
     assert record_start_prices(p, prices)
     spy = p.holdings[0]
-    assert (spy.start_price, spy.start_date) == (pytest.approx(655.462873), SEP30)
+    assert (spy.start_price, spy.start_date) == (pytest.approx(SPY_SEP30), SEP30)
     assert not record_start_prices(p, prices)  # already recorded
 
 
@@ -251,7 +260,7 @@ def test_record_start_prices_past_the_data_uses_quote(prices):
     created = prices.today + dt.timedelta(days=30)
     p = Portfolio("Later", [Holding("SPY", weight=100)], created=created)
     record_start_prices(p, prices)
-    assert (p.holdings[0].start_price, p.holdings[0].start_date) == (680.0, created)
+    assert (p.holdings[0].start_price, p.holdings[0].start_date) == (SPY_PRICE, created)
 
 
 def test_record_start_prices_leaves_holding_without_on_error():
@@ -266,16 +275,16 @@ def test_value_refetches_start_day_bar(prices):
     h = Holding("SPY", weight=100, start_price=1.0, start_date=SEP30)
     pv = value_portfolio(Portfolio("P", [h], created=dt.date(2026, 10, 1)), prices)
     row = pv.rows[0]
-    assert row.value == pytest.approx(10000 * 680.0 / _adj(prices, "SPY", SEP30))
-    assert row.start_price == pytest.approx(655.462873)
-    assert row.shares_held == pytest.approx(10000 / 655.462873)
+    assert row.value == pytest.approx(10000 * SPY_PRICE / _adj(prices, "SPY", SEP30))
+    assert row.start_price == pytest.approx(SPY_SEP30)
+    assert row.shares_held == pytest.approx(10000 / SPY_SEP30)
 
 
 def test_value_uses_recorded_price_without_history():
     h = Holding("SPY", weight=100, start_price=700.0, start_date=SEP30)
     pv = value_portfolio(Portfolio("P", [h], created=dt.date(2026, 10, 1)), NoHistory())
     assert pv.rows[0].start_date == SEP30
-    assert pv.value == pytest.approx(10000 * 680.0 / 700)
+    assert pv.value == pytest.approx(10000 * SPY_PRICE / 700)
 
 
 def test_create_records_start_prices(client, app, prices):
@@ -305,4 +314,4 @@ def test_watch_records_missing_start_prices(client, app):
     assert [h.start_date for h in q.holdings] == [SEP30, SEP30]
     assert q.created == dt.date(2026, 10, 1)
     body = client.get(f"/portfolios/{p.id}/").get_data(as_text=True)
-    assert "bought at $655.46" in body
+    assert f"bought at ${SPY_SEP30:,.2f}" in body

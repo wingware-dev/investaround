@@ -1,0 +1,36 @@
+{
+  "request": {
+    "path": "/v1/finance/search",
+    "params": {
+      "q": "zzqqxxnotathing",
+      "quotesCount": 10,
+      "newsCount": 0
+    }
+  },
+  "status": 200,
+  "headers": {
+    "content-type": "application/json;charset=utf-8"
+  },
+  "body": {
+    "explains": [],
+    "count": 0,
+    "quotes": [],
+    "news": [],
+    "nav": [],
+    "lists": [],
+    "researchReports": [],
+    "screenerFieldResults": [],
+    "totalTime": 17,
+    "timeTakenForQuotes": 410,
+    "timeTakenForNews": 0,
+    "timeTakenForAlgowatchlist": 400,
+    "timeTakenForPredefinedScreener": 400,
+    "timeTakenForCrunchbase": 0,
+    "timeTakenForNav": 400,
+    "timeTakenForResearchReports": 0,
+    "timeTakenForQuestions": 0,
+    "timeTakenForScreenerField": 0,
+    "timeTakenForCulturalAssets": 0,
+    "timeTakenForSearchLists": 0
+  }
+}

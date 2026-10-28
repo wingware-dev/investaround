@@ -24,7 +24,7 @@ def test_home_loads(page):
     assert page.title() == "Home · investaround"
     assert page.get_by_role("heading", level=1).is_visible()
     assert page.get_by_text("Pretend money only").is_visible()
-    assert "recorded sample data" in page.locator("footer").inner_text()
+    assert "made-up sample data" in page.locator("footer").inner_text()
 
 
 def test_nav_reaches_every_section(page, live_app):

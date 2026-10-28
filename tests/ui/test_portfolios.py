@@ -7,7 +7,15 @@ from playwright.sync_api import expect
 
 from investaround.models import Holding, Portfolio
 from investaround.prices.fake import FakePriceSource
+from investaround.web.portfolios import value_portfolio
 from tests.ui.harness import new_page, start_app
+
+
+def dollars(amount, sign=False):
+    text = f"${abs(amount):,.2f}"
+    if sign:
+        return ("+" if amount >= 0 else "-") + text
+    return text
 
 
 def add_by_search(page, query, symbol):
@@ -119,13 +127,14 @@ def test_watch_shows_values_since_start(page, live_app):
                             "bought at the closing prices of Sep 30, 2026.")).to_be_visible()
     spy = page.locator('.watch-table tr[data-symbol="SPY"]')
     expect(spy).to_contain_text("60%")
-    expect(spy).to_contain_text("$680.00")
-    expect(spy).to_contain_text("+$5.57")
-    # 6000 * 680.00 / 655.462873 (SPY's Sep 30 close)
-    expect(spy).to_contain_text("$6,224.61")
-    expect(spy).to_contain_text("+$224.61")
-    expect(spy).to_contain_text("bought at $655.46")
-    expect(spy).to_contain_text("9.15 shares")
+    q = FakePriceSource().quote("SPY")
+    row = next(r for r in value_portfolio(p, FakePriceSource()).rows if r.symbol == "SPY")
+    expect(spy).to_contain_text(dollars(q.price))
+    expect(spy).to_contain_text(dollars(q.price - q.previous_close, sign=True))
+    expect(spy).to_contain_text(dollars(row.value))
+    expect(spy).to_contain_text(dollars(row.gain, sign=True))
+    expect(spy).to_contain_text(f"bought at {dollars(row.start_price)}")
+    expect(spy).to_contain_text(f"{row.shares_held:.2f} shares")
     gain = page.locator('[data-stat="gain"]')
     expect(gain).to_have_class(re.compile(r"\bup\b"))
     assert live_app.store.get(p.id).created == dt.date(2026, 10, 1)
@@ -165,15 +174,16 @@ def test_edit_then_delete(page, live_app):
 
 
 def test_list_shows_each_portfolio(page, live_app):
-    seed(live_app, name="First")
+    first = seed(live_app, name="First")
     seed(live_app, name="Second", created=dt.date(2026, 10, 20))
     page.goto("/portfolios/")
     rows = page.locator(".portfolio-list tbody tr")
     expect(rows).to_have_count(2)
     expect(rows.nth(0)).to_contain_text("First")
     expect(rows.nth(0)).to_contain_text("Oct 1, 2026")
-    expect(rows.nth(0)).to_contain_text("$10,272.33")
-    expect(rows.nth(0)).to_contain_text("+$272.33 (+2.72%)")
+    pv = value_portfolio(first, FakePriceSource())
+    expect(rows.nth(0)).to_contain_text(dollars(pv.value))
+    expect(rows.nth(0)).to_contain_text(f"{dollars(pv.gain, sign=True)} ({pv.gain_pct:+.2f}%)")
 
 
 def test_watch_when_prices_are_down(browser, tmp_path):

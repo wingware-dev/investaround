@@ -119,7 +119,7 @@ def source_status(prices: PriceSource, values: list[PortfolioValue]) -> SourceSt
     stamps = [pv.prices_as_of for pv in values if pv.prices_as_of is not None]
     errors = sorted({pv.error for pv in values if pv.error})
     if prices.name == "fake":
-        desc = f"Recorded sample prices, frozen at {today_for(prices).strftime('%b %-d, %Y')}"
+        desc = f"Made-up sample prices, frozen at {today_for(prices).strftime('%b %-d, %Y')}"
     elif prices.name == "yahoo":
         desc = "Yahoo Finance (free and unofficial; prices may be 15 minutes or more behind)"
     else:
