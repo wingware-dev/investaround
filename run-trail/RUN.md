@@ -1,6 +1,6 @@
 # Run trail
 
-Generated 2026-10-28 12:21 from Wing's task store, the Tasks Manager's log, the agents' transcripts and the repository.  Times are local (-04:00).
+Generated 2026-10-31 12:27 from Wing's task store, the Tasks Manager's log, the agents' transcripts and the repository.  Times are local (-04:00).
 
 Before publishing, the price data the agents recorded from Yahoo Finance for the tests was replaced with made-up sample prices and removed from the history, so this repository ships no market data.  The commits linked below therefore have no price data, their tests use the sample prices, and their screenshots are the final ones.
 
@@ -19,6 +19,74 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - Findings filed: 0
 - Commits: 17
 - Tasks Manager decisions: 56
+
+## Use of Wing's MCP tools
+
+Wing gives the agents its IDE's features as tools on its MCP servers.  These are the calls the agents' transcripts record, their subagents' included; an error is a call its tool answered with one, refusals included.
+
+| | Tool calls | To Wing's MCP tools | Errors |
+|---|---|---|---|
+| Workers (the 18 of 19 tasks with a transcript) | 572 | 182 (32%) | 6 |
+| Tasks Manager | 234 | 213 (91%) | 14 |
+| **Total** | 806 | 395 (49%) | 20 |
+
+### By server
+
+| Server | What it gives the agents | Calls by workers | Tasks using it | Calls by the Tasks Manager |
+|---|---|---|---|---|
+| wing-review | tasks, review, version control and project files | 148 | 18 | 213 |
+| wing-analysis | Python code navigation and editing by scope | 4 | 1 | 0 |
+| wing-testing | running tests and reading their results | 30 | 16 | 0 |
+| wing-debug | the debugger: breakpoints, stack and values | 0 | 0 | 0 |
+
+### Wing's tools
+
+| Tool | Server | Calls by workers | Tasks using it | Calls by the Tasks Manager | Errors |
+|---|---|---|---|---|---|
+| create_tracked_file | wing-review | 78 | 11 | 0 | 0 |
+| tasks_events | wing-review | 0 | 0 | 49 | 0 |
+| commit_queue | wing-review | 0 | 0 | 28 | 12 |
+| wing_guide | wing-review | 25 | 11 | 1 | 0 |
+| test_run | wing-testing | 26 | 16 | 0 | 0 |
+| queue_assign | wing-review | 0 | 0 | 20 | 1 |
+| task_note | wing-review | 0 | 0 | 20 | 0 |
+| task_report | wing-review | 20 | 18 | 0 | 2 |
+| queue_start | wing-review | 0 | 0 | 17 | 0 |
+| status_note | wing-review | 0 | 0 | 16 | 0 |
+| vcs_commit | wing-review | 16 | 16 | 0 | 0 |
+| task_detail | wing-review | 0 | 0 | 14 | 0 |
+| annotate_task | wing-review | 0 | 0 | 13 | 0 |
+| queue_create | wing-review | 0 | 0 | 11 | 0 |
+| propose_tasks | wing-review | 0 | 0 | 9 | 0 |
+| read_task | wing-review | 4 | 1 | 0 | 4 |
+| test_get_details | wing-testing | 4 | 3 | 0 | 0 |
+| project_get | wing-review | 2 | 2 | 1 | 0 |
+| project_set | wing-review | 3 | 2 | 0 | 0 |
+| queue_rename | wing-review | 0 | 0 | 3 | 0 |
+| edit_scope | wing-analysis | 2 | 1 | 0 | 0 |
+| get_scope_code | wing-analysis | 2 | 1 | 0 | 0 |
+| tasks_overview | wing-review | 0 | 0 | 2 | 0 |
+| tell_worker | wing-review | 0 | 0 | 2 | 0 |
+| tests_estimate | wing-review | 0 | 0 | 2 | 1 |
+| answer_on_review | wing-review | 0 | 0 | 1 | 0 |
+| escalate | wing-review | 0 | 0 | 1 | 0 |
+| mark_ready | wing-review | 0 | 0 | 1 | 0 |
+| queue_remove | wing-review | 0 | 0 | 1 | 0 |
+| revise_task | wing-review | 0 | 0 | 1 | 0 |
+
+### Same job, Wing's tools or the agents' own
+
+| Job | Wing's tools | Calls | The agents' own | Calls |
+|---|---|---|---|---|
+| Running tests | test_run, debug_test, debug_run_tests | 26 | pytest, unittest and the like in the shell | 10 |
+| Finding code | find_definition, find_usages, find_symbols, get_scope_at_line | 0 | Grep and Glob tools; grep, rg and find in the shell | 51 |
+| Looking at changes | vcs_status, vcs_diff, vcs_log | 0 | git and hg status, diff and log in the shell | 43 |
+| Committing | vcs_commit, commit_queue | 44 | git and hg commit in the shell | 0 |
+
+### The agents' own tools
+
+- Workers: Bash 169, Edit 131, Read 53, ToolSearch 23, Write 13, WebSearch 1
+- Tasks Manager: Read 10, ToolSearch 9, Bash 2
 
 ## Timeline
 
@@ -89,6 +157,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:20 to 2026-10-27 15:52 (2m 44s)
 - **Outcome:** done
 - **Usage:** 14k input, 15k output, 371k cache read, 54k cache write (claude-haiku-5-5, claude-opus-5-5)
+- **Tools:** 14 calls, 4 to Wing's MCP tools (wing-review 4)
 
 **Prompt**
 
@@ -144,6 +213,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:24 to 2026-10-27 15:30 (6m 11s)
 - **Outcome:** done; committed [`d10a3b63de43`](https://github.com/wingware-dev/investaround/commit/d10a3b63de43a3f22a6c20a23eaf929f914d0a4f)
 - **Usage:** 82 input, 36k output, 2.31M cache read, 78k cache write (claude-opus-5-5)
+- **Tools:** 61 calls, 40 to Wing's MCP tools (wing-review 37, wing-testing 3)
 
 **Prompt**
 
@@ -200,6 +270,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:31 to 2026-10-27 15:37 (5m 51s)
 - **Outcome:** done; committed [`465a4ce3d39f`](https://github.com/wingware-dev/investaround/commit/465a4ce3d39f6fd42191c5aea5431488515b0078)
 - **Usage:** 2,181 input, 39k output, 2.45M cache read, 47k cache write (claude-haiku-5-5, claude-opus-5-5)
+- **Tools:** 25 calls, 10 to Wing's MCP tools (wing-review 8, wing-testing 2)
 
 **Prompt**
 
@@ -251,6 +322,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:31 to 2026-10-27 15:34 (2m 37s)
 - **Outcome:** done; committed [`39b2c2f36233`](https://github.com/wingware-dev/investaround/commit/39b2c2f36233e2254ff311b6c3934ece8df03128)
 - **Usage:** 2,248 input, 16k output, 1.05M cache read, 49k cache write (claude-haiku-5-5, claude-opus-5-5)
+- **Tools:** 27 calls, 13 to Wing's MCP tools (wing-review 12, wing-testing 1)
 
 **Prompt**
 
@@ -300,6 +372,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:31 to 2026-10-27 15:38 (6m 46s)
 - **Outcome:** done; committed [`573816e5f614`](https://github.com/wingware-dev/investaround/commit/573816e5f614dbbaae095656949e4f9c02df4853)
 - **Usage:** 40 input, 47k output, 1.05M cache read, 77k cache write (claude-opus-5-5)
+- **Tools:** 19 calls, 11 to Wing's MCP tools (wing-review 10, wing-testing 1)
 
 **Prompt**
 
@@ -351,6 +424,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:34 to 2026-10-27 15:39 (5m 07s)
 - **Outcome:** done; committed [`2d5891525b5e`](https://github.com/wingware-dev/investaround/commit/2d5891525b5e95e060b971a11c5ebfdfe9f416f4)
 - **Usage:** 76 input, 29k output, 2.35M cache read, 81k cache write (claude-opus-5-5)
+- **Tools:** 37 calls, 15 to Wing's MCP tools (wing-review 14, wing-testing 1)
 
 **Prompt**
 
@@ -402,6 +476,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:37 to 2026-10-27 15:45 (7m 25s)
 - **Outcome:** done; committed [`404acfb9a4ae`](https://github.com/wingware-dev/investaround/commit/404acfb9a4aec10e4b745527d08e276a969bd3d3)
 - **Usage:** 78 input, 46k output, 3.05M cache read, 113k cache write (claude-opus-5-5)
+- **Tools:** 55 calls, 16 to Wing's MCP tools (wing-review 13, wing-testing 3)
 
 **Prompt**
 
@@ -455,6 +530,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:38 to 2026-10-27 15:45 (6m 17s)
 - **Outcome:** done; committed [`87a7e0dfdbd7`](https://github.com/wingware-dev/investaround/commit/87a7e0dfdbd7b5e0fc061d8d2a3ea8d19b4e7881)
 - **Usage:** 2,222 input, 39k output, 3.12M cache read, 108k cache write (claude-haiku-5-5, claude-opus-5-5)
+- **Tools:** 37 calls, 9 to Wing's MCP tools (wing-review 8, wing-testing 1)
 
 **Prompt**
 
@@ -514,6 +590,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:38 to 2026-10-27 15:44 (5m 30s)
 - **Outcome:** done; committed [`d94be11d7548`](https://github.com/wingware-dev/investaround/commit/d94be11d754872282e3e8135889c916e86293176)
 - **Usage:** 70 input, 32k output, 2.58M cache read, 103k cache write (claude-opus-5-5)
+- **Tools:** 39 calls, 15 to Wing's MCP tools (wing-review 10, wing-testing 5)
 
 **Prompt**
 
@@ -566,6 +643,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:40 to 2026-10-27 15:42 (2m 06s)
 - **Outcome:** done; committed [`c082bed9c661`](https://github.com/wingware-dev/investaround/commit/c082bed9c66129bbfcf97dfd5c6d37482e40a9cd)
 - **Usage:** 1,938 input, 9,132 output, 1.60M cache read, 20k cache write (claude-haiku-5-5, claude-opus-5-5)
+- **Tools:** 19 calls, 4 to Wing's MCP tools (wing-review 2, wing-testing 2)
 
 **Prompt**
 
@@ -601,6 +679,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:43 to 2026-10-27 15:46 (2m 55s)
 - **Outcome:** done; committed [`2a0194fc572f`](https://github.com/wingware-dev/investaround/commit/2a0194fc572f337504b97ae08809b9f1af0a2aa4)
 - **Usage:** 40 input, 17k output, 1.93M cache read, 29k cache write (claude-opus-5-5)
+- **Tools:** 28 calls, 3 to Wing's MCP tools (wing-review 2, wing-testing 1)
 
 **Prompt**
 
@@ -641,6 +720,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:44 to 2026-10-27 15:46 (1m 40s)
 - **Outcome:** done; committed [`041823065e47`](https://github.com/wingware-dev/investaround/commit/041823065e473eaf9e205ec4c5606560f8511986)
 - **Usage:** 2,111 input, 7,379 output, 1.78M cache read, 17k cache write (claude-haiku-5-5, claude-opus-5-5)
+- **Tools:** 14 calls, 3 to Wing's MCP tools (wing-review 2, wing-testing 1)
 
 **Prompt**
 
@@ -672,6 +752,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:46 to 2026-10-27 15:52 (5m 51s)
 - **Outcome:** done; committed [`2cc5ced41921`](https://github.com/wingware-dev/investaround/commit/2cc5ced41921e3c15dc66dc76ee5b6cf597abe96)
 - **Usage:** 2,216 input, 29k output, 4.01M cache read, 127k cache write (claude-haiku-5-5, claude-opus-5-5)
+- **Tools:** 65 calls, 10 to Wing's MCP tools (wing-review 8, wing-testing 2)
 
 **Prompt**
 
@@ -736,6 +817,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:46 to 2026-10-27 15:48 (1m 37s)
 - **Outcome:** done; committed [`2f1ae55126c1`](https://github.com/wingware-dev/investaround/commit/2f1ae55126c145eeb8ad5d6a786d22f39a346086)
 - **Usage:** 30 input, 7,676 output, 1.67M cache read, 15k cache write (claude-opus-5-5)
+- **Tools:** 15 calls, 3 to Wing's MCP tools (wing-review 2, wing-testing 1)
 
 **Prompt**
 
@@ -769,6 +851,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:53 to 2026-10-27 16:00 (7m 21s)
 - **Outcome:** done; committed [`347320221c6d`](https://github.com/wingware-dev/investaround/commit/347320221c6d9d3037001505c2f9b9be31c52619)
 - **Usage:** 1,880 input, 32k output, 5.87M cache read, 88k cache write (claude-haiku-5-5, claude-opus-5-5)
+- **Tools:** 67 calls, 7 to Wing's MCP tools (wing-review 4, wing-testing 3)
 
 **Prompt**
 
@@ -815,6 +898,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 15:58 to 2026-10-27 16:01 (3m 01s)
 - **Outcome:** done; committed [`08f02824bfc7`](https://github.com/wingware-dev/investaround/commit/08f02824bfc7570852788b6a390239bdb6fa1dc4)
 - **Usage:** 1,954 input, 16k output, 3.66M cache read, 25k cache write (claude-haiku-5-5, claude-opus-5-5)
+- **Tools:** 32 calls, 7 to Wing's MCP tools (wing-analysis 4, wing-review 2, wing-testing 1)
 
 **Prompt**
 
@@ -851,6 +935,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 16:01 to 2026-10-27 16:02 (1m 15s)
 - **Outcome:** done
 - **Usage:** 1,745 input, 1,298 output, 164k cache read, 19k cache write (claude-haiku-5-5, claude-opus-5-5)
+- **Tools:** 6 calls, 5 to Wing's MCP tools (wing-review 3, wing-testing 2)
 
 **Prompt**
 
@@ -873,6 +958,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:**  to 2026-10-27 16:11 ()
 - **Outcome:** done
 - **Usage:** 0 input, 0 output, 0 cache read, 0 cache write (model not recorded)
+- **Tools:** not recorded (no transcript)
 
 **Prompt**
 
@@ -892,6 +978,7 @@ Before publishing, the price data the agents recorded from Yahoo Finance for the
 - **Ran:** 2026-10-27 16:12 to 2026-10-27 16:13 (0m 29s)
 - **Outcome:** done; committed [`5a0f7b5cb767`](https://github.com/wingware-dev/investaround/commit/5a0f7b5cb767dfadf955f17929c21a5b29fb2457)
 - **Usage:** 1,809 input, 3,241 output, 265k cache read, 24k cache write (claude-haiku-5-5, claude-opus-5-5)
+- **Tools:** 12 calls, 7 to Wing's MCP tools (wing-review 7)
 
 **Prompt**
 

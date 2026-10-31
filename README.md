@@ -56,6 +56,10 @@ the sample prices, and their screenshots are the final ones.
 task with its prompt, the questions and who answered them, the judgement
 calls, the commits and screenshots, and the time and tokens each used,
 followed by what went wrong along the way.
+Its [use of Wing's MCP tools](run-trail/RUN.md#use-of-wings-mcp-tools)
+section counts the calls the agents made to the IDE features Wing gives
+them as MCP tools, by server and tool, and how often they used their
+own tools instead for the same jobs.
 [run-trail/trail.json](run-trail/trail.json) has the same data.
 
 ## What's in it
