@@ -11,17 +11,18 @@ needed anywhere.
 
 ## How it was built
 
-AI agents (Claude Code) wrote all of investaround from one prompt,
-working inside Wing Pro 12.1, a Python IDE from
-[Wingware](https://wingware.com/).  Wing's Tasks Manager is itself an AI
-agent: it turns a request into a queue of tasks, gives each to a
-separate coding agent, answers their questions, checks and commits their
-work, and starts the next.  The prompt was written the way a new
-investor who doesn't program might ask, without naming a data source, a
-web framework or how to test it.  The agents chose those, and planned,
-built and tested the app, up to four tasks at a time.  The run took
-about an hour on October 27, 2026, from 3:19 pm to 4:13 pm, including
-two follow-up requests, and made 19 tasks and 17 commits.
+investaround is a test of the autonomous development features in Wing
+Pro 12.1, a Python IDE from [Wingware](https://wingware.com/).  AI agents
+(Claude Code) wrote all of it from one prompt, with Wing's Tasks Manager
+queueing and running the work.  The Tasks Manager is itself an AI agent:
+it turns a request into a queue of tasks, gives each to a separate
+coding agent, answers their questions, checks and commits their work,
+and starts the next.  The prompt was written the way a new investor who
+doesn't program might ask, without naming a data source, a web framework
+or how to test it.  The agents chose those, and planned, built and tested
+the app, up to four tasks at a time.  The run took about an hour on
+October 27, 2026, from 3:19 pm to 4:13 pm, including two follow-up
+requests, and made 19 tasks and 17 commits.
 
 This was the prompt that started it:
 
